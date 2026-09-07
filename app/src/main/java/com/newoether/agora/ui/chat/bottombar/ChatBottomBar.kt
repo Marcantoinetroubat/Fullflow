@@ -76,18 +76,6 @@ import kotlinx.coroutines.withContext
 import com.newoether.agora.data.CustomProviderConfig
 import com.newoether.agora.data.providerDisplayName
 import com.newoether.agora.data.modelDisplayName
-internal val CHAT_BOTTOM_BAR_OUTER_RADIUS = 28.dp
-internal val CHAT_BOTTOM_BAR_OUTER_SHAPE = RoundedCornerShape(CHAT_BOTTOM_BAR_OUTER_RADIUS)
-internal val CHAT_DROPDOWN_MENU_SHAPE = RoundedCornerShape(16.dp)
-internal fun contextUsageExceedsCompactThreshold(
-    estimatedTokens: Int, tokenBudget: Int, thresholdPercent: Int,
-): Boolean {
-    val normalizedBudget = tokenBudget.coerceAtLeast(1)
-    val normalizedPercent = thresholdPercent.coerceIn(50, 100)
-    val threshold = ((normalizedBudget.toLong() * normalizedPercent + 99L) / 100L)
-        .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-    return tokenBudget > 0 && estimatedTokens > threshold
-}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -164,6 +152,7 @@ internal fun ChatBottomBar(
     queuedSends: List<QueuedSend> = emptyList(),
     onRemoveQueuedSend: (String) -> Unit = {},
     isStopping: Boolean = false,
+    onLaunchGeminiLive: () -> Unit = {},
 ) {
     val motionPolicy = LocalAgoraMotionPolicy.current
     val allowSpatialTransitions = motionPolicy.allowSpatialTransitions
@@ -935,19 +924,27 @@ internal fun ChatBottomBar(
                     }
                 }
             }
-            ComposerSendButton(
-                textFieldState = textFieldState,
-                ownerId = composerOwnerId,
-                snapshot = composerSnapshot,
-                submissionController = submissionController,
-                submission = submission,
-                isLoading = isLoading,
-                isSwitching = isSwitching,
-                isStopping = isStopping,
-                isModelValid = isModelValid,
-                onStopGeneration = onStopGeneration,
-                onCollapse = onCollapse,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                com.newoether.agora.ui.chat.live.GeminiLiveLauncherButton(
+                    onClick = onLaunchGeminiLive
+                )
+                ComposerSendButton(
+                    textFieldState = textFieldState,
+                    ownerId = composerOwnerId,
+                    snapshot = composerSnapshot,
+                    submissionController = submissionController,
+                    submission = submission,
+                    isLoading = isLoading,
+                    isSwitching = isSwitching,
+                    isStopping = isStopping,
+                    isModelValid = isModelValid,
+                    onStopGeneration = onStopGeneration,
+                    onCollapse = onCollapse,
+                )
+            }
         }
         }
         AnimatedVisibility(

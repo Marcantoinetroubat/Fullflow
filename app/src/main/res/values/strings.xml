@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Agora</string>
-    <string name="agora_responded">Agora responded</string>
+    <string name="app_name">FullFlow</string>
+    <string name="agora_responded">FullFlow responded</string>
 
     <!-- Chat Bottom Bar -->
     <string name="add_attachment">Add Attachment</string>
@@ -19,8 +19,35 @@
     <string name="openai_search">OpenAI Search</string>
     <string name="thinking">Thinking</string>
     <string name="web_search">Web Search</string>
-    <string name="ask_agora">Ask Agora anything...</string>
+    <string name="ask_agora">Ask FullFlow anything...</string>
+    <string name="search_fullflow_hint">Rechercher...</string>
+    <string name="tab_home">Accueil</string>
+    <string name="tab_genmail">GenMail</string>
+    <string name="tab_plus">Plus</string>
+    <string name="tab_profile">Profil</string>
     <string name="send">Send</string>
+
+    <!-- Gemini Live Voice -->
+    <string name="gemini_live_title">Gemini Live</string>
+    <string name="gemini_live_subtitle">Conversations vocales interactives en temps réel</string>
+    <string name="gemini_live_status_connecting">Connexion à Gemini Live…</string>
+    <string name="gemini_live_status_connected">Connecté · À votre écoute</string>
+    <string name="gemini_live_status_listening">Écoute en cours…</string>
+    <string name="gemini_live_status_thinking">Gemini réfléchit…</string>
+    <string name="gemini_live_status_speaking">Gemini parle…</string>
+    <string name="gemini_live_status_error">Erreur de connexion</string>
+    <string name="gemini_live_voice_select">Voix</string>
+    <string name="gemini_live_mute">Couper le micro</string>
+    <string name="gemini_live_unmute">Activer le micro</string>
+    <string name="gemini_live_end">Terminer</string>
+    <string name="gemini_live_interrupt">Interrompre</string>
+    <string name="gemini_live_mic_permission_title">Accès microphone requis</string>
+    <string name="gemini_live_mic_permission_desc">Pour échanger en direct à la voix avec Gemini Live, l\'application a besoin de l\'accès au microphone.</string>
+    <string name="gemini_live_mic_permission_grant">Autoriser le micro</string>
+    <string name="gemini_live_no_api_key">Clé API Gemini requise pour la voix en direct. Veuillez configurer votre clé dans les paramètres ou entrer une clé.</string>
+    <string name="gemini_live_export_to_chat">Transférer dans le chat</string>
+    <string name="gemini_live_persona">Personnalité</string>
+    <string name="gemini_live_button_label">Gemini Live Vocal</string>
 
     <!-- Tool Display -->
     <string name="tool_look_up_memories">Look Up Memories</string>
@@ -627,6 +654,7 @@
     <string name="theme_mode_dark">Dark</string>
     <string name="theme_mode_follow_device">Follow Device</string>
     <string name="color_scheme">Color Scheme</string>
+    <string name="color_scheme_fullflow">FullFlow (Noir)</string>
     <string name="color_scheme_midnight">Midnight</string>
     <string name="color_scheme_nordic">Nordic</string>
     <string name="color_scheme_forest">Forest</string>
@@ -770,9 +798,9 @@
     <string name="play">Play</string>
     <string name="video_preview">Video preview</string>
     <string name="total_tokens">Total: %1$d tokens</string>
-    <string name="welcome_to_agora">Welcome to Agora.</string>
+    <string name="welcome_to_agora">FULLFLOW</string>
     <string name="database_incompatible">Database Incompatible</string>
-    <string name="database_incompatible_desc">The database is incompatible with this version of Agora. Please clear the database and restart the app.</string>
+    <string name="database_incompatible_desc">The database is incompatible with this version of FullFlow. Please clear the database and restart the app.</string>
     <string name="quit">Quit</string>
     <string name="clear_database">Clear Database</string>
     <string name="generate_title">Generate Title</string>
@@ -859,10 +887,10 @@
     <string name="about_update_available">Update available: v%1$s</string>
     <string name="about_up_to_date">You\'re up to date (v%1$s)</string>
     <string name="about_checking">Checking...</string>
-    <string name="about_available_body">A new version of Agora is available on GitHub.</string>
+    <string name="about_available_body">A new version of FullFlow is available on GitHub.</string>
     <string name="about_view_release">View Release</string>
     <string name="about_later">Later</string>
-    <string name="rating_title">Rate Agora</string>
+    <string name="rating_title">Rate FullFlow</string>
     <string name="rating_star">%1$d star(s)</string>
     <string name="rating_your_name">Your Name (optional)</string>
     <string name="rating_your_email">Your Email (optional)</string>
@@ -993,7 +1021,7 @@
     <string name="show_documentation_links_desc">Display documentation button on settings pages</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_welcome_title">Welcome to Agora</string>
+    <string name="onboarding_welcome_title">Welcome to FullFlow</string>
     <string name="onboarding_welcome_desc">A BYOK app that takes back your data sovereignty.</string>
     <string name="onboarding_byok_title">Bring Your Own Key</string>
     <string name="onboarding_byok_desc">Set up your API keys or import a GGUF model to unlock on-device inference.</string>
@@ -1078,7 +1106,7 @@
     <string name="shell_confirm_setting_desc">Ask before the assistant runs commands or writes files on remote SSH/Conch servers</string>
 
     <!-- Crash reporting -->
-    <string name="crash_title">Agora quit unexpectedly</string>
+    <string name="crash_title">FullFlow quit unexpectedly</string>
     <string name="crash_message">Sorry about that. You can help fix this by sending an anonymous crash report.</string>
     <string name="crash_submit">Submit report</string>
     <string name="crash_dismiss">Don\'t send</string>
@@ -1248,4 +1276,127 @@
     <string name="local_model_limitations_body">Local models are limited by the memory available on mobile devices. Context size is one of the main constraints. Context often includes the system prompt, tool or function definitions, and skills. To reduce initial context use, open the three-dot menu beside the model selector and enable Low Context Mode.</string>
     <string name="models_show_provider_name">Show Provider name</string>
     <string name="models_show_provider_name_desc">Append the Provider name to the model name.</string>
+
+    <!-- FullFlow Audio Studio & TTS Strings -->
+    <string name="audio_studio_title">FullFlow Audio Studio</string>
+    <string name="audio_studio_subtitle">Live Transcription, Text-to-Speech &amp; Audio Files</string>
+    <string name="tab_live_transcription">Live Transcription</string>
+    <string name="tab_text_to_speech">Text-to-Speech</string>
+    <string name="tab_audio_files">Audio Files</string>
+    <string name="audio_mic_permission_required">Microphone permission required</string>
+    <string name="audio_mic_permission_desc">FullFlow requires microphone access for real-time live transcription and voice recording.</string>
+    <string name="audio_grant_permission">Grant Microphone Access</string>
+    <string name="audio_listening">Listening in real-time...</string>
+    <string name="audio_ready">Tap microphone to start</string>
+    <string name="audio_paused">Transcription paused</string>
+    <string name="audio_copy">Copy</string>
+    <string name="audio_copied">Copied to clipboard</string>
+    <string name="audio_insert_to_chat">Insert into Chat</string>
+    <string name="audio_share">Share</string>
+    <string name="audio_clear">Clear</string>
+    <string name="audio_read_aloud">Read aloud (TTS)</string>
+    <string name="audio_tts_title">Text to Speech (TTS)</string>
+    <string name="audio_tts_input_placeholder">Type or paste text to convert to natural speech...</string>
+    <string name="audio_tts_play">Speak Text</string>
+    <string name="audio_tts_stop">Stop</string>
+    <string name="audio_tts_pause">Pause</string>
+    <string name="audio_tts_speed">Speech Rate</string>
+    <string name="audio_tts_pitch">Pitch</string>
+    <string name="audio_tts_language">Voice Language</string>
+    <string name="audio_tts_sample_intro">Hello! Welcome to FullFlow, your sovereign AI workspace.</string>
+    <string name="audio_tts_sample_summary">Here is a concise summary of our recent discussions and insights.</string>
+    <string name="audio_import_file">Import Audio File</string>
+    <string name="audio_record_memo">Record Audio Memo</string>
+    <string name="audio_recording">Recording audio memo...</string>
+    <string name="audio_stop_recording">Stop &amp; Transcribe</string>
+    <string name="audio_transcribe_button">Transcribe Audio with AI</string>
+    <string name="audio_transcribing">Analyzing and transcribing audio...</string>
+    <string name="audio_transcription_result">Transcription Result</string>
+    <string name="audio_transcription_summary">Summary &amp; Key Takeaways</string>
+    <string name="audio_no_file_selected">No audio file selected yet</string>
+    <string name="audio_supported_formats">Supported formats: MP3, WAV, M4A, OGG, AAC, FLAC</string>
+    <string name="audio_studio_hub_title">Audio &amp; Voice Studio</string>
+    <string name="audio_studio_hub_subtitle">Live speech-to-text, natural TTS &amp; file transcription</string>
+
+    <!-- Google Workspace & Drive strings -->
+    <string name="workspace_google_drive">Google Drive &amp; Workspace</string>
+    <string name="workspace_google_drive_desc">Synchronisez, explorez et importez vos documents, feuilles et présentations Google Drive.</string>
+    <string name="workspace_oauth_connect">Connecter Google Drive</string>
+    <string name="workspace_oauth_connected">Google Drive connecté</string>
+    <string name="workspace_oauth_connecting">Connexion en cours…</string>
+    <string name="workspace_oauth_disconnect">Déconnecter</string>
+    <string name="workspace_oauth_sync">Synchroniser</string>
+    <string name="workspace_syncing">Synchronisation des fichiers…</string>
+    <string name="workspace_search_hint">Rechercher dans Google Drive…</string>
+    <string name="workspace_recent_files">Fichiers récents Google Drive</string>
+    <string name="workspace_file_explorer">Explorateur Google Drive</string>
+    <string name="workspace_import_to_chat">Importer dans le chat</string>
+    <string name="workspace_open_in_drive">Ouvrir dans Drive</string>
+    <string name="workspace_storage_quota">Espace de stockage Drive</string>
+    <string name="workspace_filter_all">Tous</string>
+    <string name="workspace_filter_docs">Docs</string>
+    <string name="workspace_filter_sheets">Sheets</string>
+    <string name="workspace_filter_slides">Slides</string>
+    <string name="workspace_filter_folders">Dossiers</string>
+    <string name="workspace_filter_pdf">PDF</string>
+    <string name="workspace_no_files_found">Aucun fichier trouvé</string>
+    <string name="workspace_no_recent_files">Aucun fichier récent synchronisé</string>
+    <string name="workspace_tab_dashboard">Tableau de bord</string>
+    <string name="workspace_tab_explorer">Explorateur</string>
+    <string name="workspace_enter_token_prompt">Saisir un jeton d\'accès Google (OAuth)</string>
+    <string name="workspace_oauth_direct_button">Connexion directe OAuth</string>
+    <string name="workspace_imported_success">Fichier Google Drive importé avec succès !</string>
+    <string name="workspace_root_folder">Mon Drive</string>
+
+    <!-- Image Studio (Nano Banana 2 / Gemini Image Creation & Editing) -->
+    <string name="image_studio_title">Studio Images &amp; Retouche</string>
+    <string name="image_studio_desc">Générez et retouchez des images avec Nano Banana 2 (gemini-3.1-flash-image-preview)</string>
+    <string name="image_studio_header_title">Essayez un modèle ou décrivez une idée dans le chat</string>
+    <string name="image_studio_create_with">Créez avec %1$s</string>
+    <string name="image_studio_prompt_hint">Décrivez une idée ou retouchez une image…</string>
+    <string name="image_studio_edit_image_badge">Retouche d\'image active</string>
+    <string name="image_studio_pick_image">Sélectionner une photo à retoucher</string>
+    <string name="image_studio_remove_attached_image">Retirer l\'image</string>
+    <string name="image_studio_aspect_ratio">Format</string>
+    <string name="image_studio_resolution">Résolution</string>
+    <string name="image_studio_burst_mode">Variations</string>
+    <string name="image_studio_model_picker">Modèle d\'image</string>
+    <string name="image_studio_generating">Génération de l\'image en cours…</string>
+    <string name="image_studio_editing">Retouche de l\'image en cours…</string>
+    <string name="image_studio_action_retouch">Retoucher</string>
+    <string name="image_studio_action_save">Enregistrer</string>
+    <string name="image_studio_action_share">Partager</string>
+    <string name="image_studio_action_copy_prompt">Copier le prompt</string>
+    <string name="image_studio_action_send_to_chat">Insérer dans le chat</string>
+    <string name="image_studio_saved_success">Image enregistrée dans la galerie !</string>
+    <string name="image_studio_preset_origami">Origami</string>
+    <string name="image_studio_preset_aquarelle">Aquarelle</string>
+    <string name="image_studio_preset_zen">Zen</string>
+    <string name="image_studio_preset_claymation">Pâte à modeler</string>
+    <string name="image_studio_preset_premier_rang">Premier rang</string>
+    <string name="image_studio_preset_parachute">Parachute</string>
+    <string name="image_studio_preset_cyberpunk">Cyberpunk</string>
+    <string name="image_studio_preset_render3d">Rendu 3D</string>
+    <string name="image_studio_preset_cinematic">Cinématique</string>
+    <string name="image_studio_history_empty">Aucune image générée pour le moment</string>
+    <string name="image_studio_gallery">Galerie Studio</string>
+    <string name="image_studio_tab_studio">Studio</string>
+    <string name="image_studio_tab_gallery">Galerie</string>
+    <string name="image_studio_select_mode">Sélectionner</string>
+    <string name="image_studio_selection_count">%1$d sélectionnée(s)</string>
+    <string name="image_studio_select_all">Tout sélectionner</string>
+    <string name="image_studio_deselect_all">Tout désélectionner</string>
+    <string name="image_studio_download_selected">Télécharger (%1$d)</string>
+    <string name="image_studio_delete_selected">Supprimer (%1$d)</string>
+    <string name="image_studio_batch_download_success">%1$d image(s) enregistrée(s) dans Pictures/FullFlow !</string>
+    <string name="image_studio_batch_downloading">Téléchargement de %1$d image(s)…</string>
+    <string name="image_studio_delete_success">%1$d image(s) supprimée(s)</string>
+    <string name="image_studio_saved_prompts_title">Prompts &amp; Styles favoris</string>
+    <string name="image_studio_save_prompt_action">Sauvegarder ce prompt</string>
+    <string name="image_studio_save_prompt_dialog_title">Enregistrer dans les favoris</string>
+    <string name="image_studio_saved_prompt_name_hint">Titre du style (ex: Aquarelle dorée)</string>
+    <string name="image_studio_save_prompt_success">Prompt enregistré dans vos styles favoris !</string>
+    <string name="image_studio_saved_prompts_empty">Aucun style favori enregistré pour l\'instant</string>
+    <string name="image_studio_saved_prompt_deleted">Style supprimé des favoris</string>
+    <string name="image_studio_use_prompt">Appliquer</string>
 </resources>

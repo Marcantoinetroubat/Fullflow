@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CallSplit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -92,6 +93,7 @@ internal fun ChatTopBar(
     onSystemPromptClick: () -> Unit,
     onForkConversation: () -> Unit = {},
     onShareConversation: () -> Unit = {},
+    onLaunchGeminiLive: () -> Unit = {},
     onNewChat: () -> Unit,
 ) {
     var moreMenuOpen by remember { mutableStateOf(false) }
@@ -496,6 +498,20 @@ internal fun ChatTopBar(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
                                 tonalElevation = 16.dp,
                             ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.gemini_live_title)) },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.AutoAwesome,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    onClick = {
+                                        moreMenuOpen = false
+                                        onLaunchGeminiLive()
+                                    },
+                                )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.conversation_search)) },
                                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },

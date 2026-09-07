@@ -781,6 +781,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
 
 @Composable
 private fun presetDisplayName(preset: ColorSchemePreset): String = when (preset) {
+    ColorSchemePreset.FULLFLOW -> stringResource(R.string.color_scheme_fullflow)
     ColorSchemePreset.MIDNIGHT -> stringResource(R.string.color_scheme_midnight)
     ColorSchemePreset.NORDIC -> stringResource(R.string.color_scheme_nordic)
     ColorSchemePreset.FOREST -> stringResource(R.string.color_scheme_forest)

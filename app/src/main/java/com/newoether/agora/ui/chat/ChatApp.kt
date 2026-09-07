@@ -109,6 +109,9 @@ fun ChatApp(
     val compactThresholdPercent by
         viewModel.settings.contextCompactThresholdPercent.collectAsState()
     val manualCompactDialogVisible = rememberSaveable { mutableStateOf(false) }
+    var showGeminiLiveDialog by rememberSaveable { mutableStateOf(false) }
+    var showGenMailDialog by rememberSaveable { mutableStateOf(false) }
+    var showPlusSheet by rememberSaveable { mutableStateOf(false) }
     val dialogState = rememberChatAppDialogState(manualCompactDialogVisible)
     val queuedSends by viewModel.queuedSends.collectAsState()
     val isStopping by viewModel.isStopping.collectAsState()
@@ -127,16 +130,10 @@ fun ChatApp(
     val debugModelEnabled by viewModel.settings.debugModelEnabled.collectAsState()
     val modelAliases by viewModel.settings.modelAliases.collectAsState()
     val modelProviderNames by viewModel.settings.modelProviderNames.collectAsState()
-    val chatEnabledModels = validChatModels(
-        enabledModels,
-        developerOptionsEnabled,
-        debugModelEnabled,
-    )
+    val chatEnabledModels = validChatModels(enabledModels, developerOptionsEnabled, debugModelEnabled)
     val chatModelAliases = if (DebugProvider.MODEL_ID in chatEnabledModels) {
         modelAliases + (DebugProvider.MODEL_ID to DebugProvider.PROVIDER_NAME)
-    } else {
-        modelAliases
-    }
+    } else modelAliases
     val thoughtExpandedStates = remember(currentConversationId) { mutableStateMapOf<String, Boolean>() }
     val isNewChatMode by viewModel.isNewChatMode.collectAsState()
     val newChatEntryId by viewModel.newChatEntryId.collectAsState()
@@ -405,7 +402,8 @@ fun ChatApp(
                 containerColor = Color.Transparent,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 topBar = {
-                    ChatTopBar(
+                    if (!isNewChatMode || conversationSearchActive) {
+                        ChatTopBar(
                         isNewChatMode = isNewChatMode,
                         conversations = displayConversations,
                         currentConversationId = currentConversationId,
@@ -455,6 +453,7 @@ fun ChatApp(
                             focusManager.clearFocus()
                             conversationInteraction.activateShareSelection()
                         },
+                        onLaunchGeminiLive = { showGeminiLiveDialog = true },
                         onNewChat = {
                             if (!isNewChatMode) {
                                 isExpanded = false
@@ -463,6 +462,7 @@ fun ChatApp(
                             }
                         },
                     )
+                    }
                 }
             ) { padding ->
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -644,40 +644,16 @@ fun ChatApp(
                             )
                             }
                         } else if (targetShowLaunch) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(bottom = bottomBarHeight),
-                                contentAlignment = Alignment.TopCenter
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .verticalScroll(rememberScrollState()),
-                                    contentAlignment = Alignment.TopCenter
-                                ) {
-                                    val welcomeText = stringResource(R.string.welcome_to_agora)
-                                    val availableWelcomeHeight =
-                                        windowHeightDp +
-                                            topBarH.value / 2f -
-                                            bottomBarHeight.value
-                                    val welcomeTopPadding =
-                                        (availableWelcomeHeight / 2f).coerceAtLeast(0f).dp
-                                    val welcomeModifier =
-                                        Modifier.padding(top = welcomeTopPadding)
-                                    TypewriterText(
-                                        text = welcomeText,
-                                        animationKey = newChatEntryId,
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        typeSpeedMs = 100,
-                                        animate = newChatMotion.animateWelcomeText,
-                                        mode = TypewriterMode.TEXT_GRADIENT,
-                                        modifier = welcomeModifier,
-                                    )
-                                }
-                            }
+                            com.newoether.agora.ui.chat.fullflow.FullFlowHomeHost(
+                                isNewChatMode = true,
+                                conversationsCount = displayConversations.size,
+                                onOpenSearch = { conversationInteraction.activateSearch() },
+                                onOpenDrawer = {
+                                    if (drawerEnabled) scope.launch { drawerState.toggle(motionPolicy) }
+                                },
+                                onActivateComposer = { inputFocusRequester.requestFocus() },
+                                onResetHome = { viewModel.createNewChat() },
+                            )
                         } else {
                             Box(modifier = Modifier.fillMaxSize())
                         }
@@ -889,10 +865,7 @@ fun ChatApp(
                         composerOwnerId = composerOwnerId,
                         composerController = viewModel.conversationComposer,
                         composerSnapshot = composerSnapshot,
-                        onStopGeneration = {
-                            haptics.interrupt()
-                            viewModel.stopGeneration()
-                        },
+                        onStopGeneration = { haptics.interrupt(); viewModel.stopGeneration() },
                         isLoading = isLoading,
                         isCompacting = isCompacting,
                         isSwitching = isSwitching,
@@ -929,9 +902,7 @@ fun ChatApp(
                         lowContextModeEnabled = conversationControls.lowContextModeEnabled,
                         onLowContextModeToggle = { enabled ->
                             haptics.toggle(enabled)
-                            viewModel.updateConversationSetting(conversationControls.settingsOwnerId) {
-                                it.copy(lowContextModeEnabled = enabled)
-                            }
+                            viewModel.updateConversationSetting(conversationControls.settingsOwnerId) { it.copy(lowContextModeEnabled = enabled) }
                         },
                         // The model row owns its selection tick. Repeating it here produced the
                         // previous double buzz for one physical tap.
@@ -971,9 +942,18 @@ fun ChatApp(
                         queuedSends = queuedSends,
                         onRemoveQueuedSend = viewModel::removeQueuedSend,
                         isStopping = isStopping,
+                        onLaunchGeminiLive = { showGeminiLiveDialog = true },
                     )
                             }
                         }
+                        com.newoether.agora.ui.chat.fullflow.FullFlowBottomBarHost(
+                            visible = !isExpanded,
+                            isNewChatMode = isNewChatMode,
+                            onHomeClick = { if (!isNewChatMode) viewModel.createNewChat() },
+                            onGenMailClick = { showGenMailDialog = true },
+                            onPlusClick = { showPlusSheet = true },
+                            onProfileClick = onOpenSettings,
+                        )
                     }
                 }
             }
@@ -990,10 +970,24 @@ fun ChatApp(
         compactPrompt = compactPrompt,
         compactRetainCount = compactRetainCount,
         enabledModels = chatEnabledModels,
-        modelAliases = chatModelAliases, customProviders = customProviders,
+        modelAliases = chatModelAliases,
+        customProviders = customProviders,
         modelProviderNames = modelProviderNames,
         isCompacting = isCompacting,
+        geminiLiveVisible = showGeminiLiveDialog,
+        onDismissGeminiLive = { showGeminiLiveDialog = false },
+        fullFlowGenMailVisible = showGenMailDialog,
+        onDismissFullFlowGenMail = { showGenMailDialog = false },
+        onGenerateMail = { inputFocusRequester.requestFocus() },
+        fullFlowPlusVisible = showPlusSheet,
+        onDismissFullFlowPlus = { showPlusSheet = false },
+        onLaunchGeminiLiveFromPlus = { showGeminiLiveDialog = true },
+        onNewChatFromPlus = { viewModel.createNewChat() },
+        onOpenTasksFromPlus = { onOpenTasks(null) },
+        onOpenSettingsFromPlus = onOpenSettings,
+        composerOwnerId = composerOwnerId,
     )
 
+    com.newoether.agora.ui.chat.audio.FullFlowAudioHost(viewModel, textFieldState, inputFocusRequester) { showGenMailDialog = true }
     ChatForkConfirmationHost(pendingForkRequest, viewModel) { pendingForkRequest = null }
 }

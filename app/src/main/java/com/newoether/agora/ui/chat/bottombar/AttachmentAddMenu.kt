@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Videocam
@@ -84,6 +85,49 @@ internal fun AttachmentAddMenu(
             AttachmentMenuItem(Icons.Default.Image, R.string.photos) { select(onPhotos) }
             AttachmentMenuItem(Icons.Default.Videocam, R.string.videos) { select(onVideos) }
             AttachmentMenuItem(Icons.Default.AttachFile, R.string.files) { select(onFiles) }
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_nano_banana),
+                            contentDescription = null,
+                            tint = androidx.compose.ui.graphics.Color.Unspecified,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(stringResource(R.string.image_studio_title))
+                    }
+                },
+                onClick = {
+                    select {
+                        com.newoether.agora.studio.image.GeminiImageStudioController.openStudio()
+                    }
+                },
+            )
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_google_drive),
+                            contentDescription = null,
+                            tint = androidx.compose.ui.graphics.Color.Unspecified,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(stringResource(R.string.workspace_google_drive))
+                    }
+                },
+                onClick = {
+                    select {
+                        com.newoether.agora.workspace.drive.GoogleDriveWorkspaceController.openDriveDashboard()
+                    }
+                },
+            )
+            AttachmentMenuItem(Icons.Default.GraphicEq, R.string.audio_studio_title) {
+                select {
+                    com.newoether.agora.ui.chat.audio.FullFlowAudioController.openLiveTranscription()
+                }
+            }
         }
     }
 }

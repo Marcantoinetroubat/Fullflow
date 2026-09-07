@@ -19,6 +19,11 @@ android {
         targetSdk = 36
         versionCode = 31
         versionName = "2.1.0"
+
+        val envApiKey = (project.findProperty("GEMINI_API_KEY") as? String)
+            ?: System.getenv("GEMINI_API_KEY")
+            ?: ""
+        buildConfigField("String", "GEMINI_API_KEY", "\"$envApiKey\"")
     }
 
     ksp {
@@ -63,6 +68,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     // The app switches locales at runtime without Play Feature Delivery. Keep every
     // packaged translation available instead of letting App Bundles split languages.

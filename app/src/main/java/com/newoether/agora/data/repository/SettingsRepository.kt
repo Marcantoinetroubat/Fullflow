@@ -144,7 +144,7 @@ class SettingsRepository(
         DEFAULT_CONTEXT_COMPACT_THRESHOLD_PERCENT,
     )
     val codeExecutionEnabled: StateFlow<Boolean> = hot(settingsManager.codeExecutionEnabled, false)
-    val googleSearchEnabled: StateFlow<Boolean> = hot(settingsManager.googleSearchEnabled, false)
+    val googleSearchEnabled: StateFlow<Boolean> = hot(settingsManager.googleSearchEnabled, true)
     val thinkingEnabled: StateFlow<Boolean> = hot(settingsManager.thinkingEnabled, true)
     val thinkingLevel: StateFlow<String> = hot(settingsManager.thinkingLevel, "medium")
     val thinkingBudgetEnabled: StateFlow<Boolean> = hot(settingsManager.thinkingBudgetEnabled, false)

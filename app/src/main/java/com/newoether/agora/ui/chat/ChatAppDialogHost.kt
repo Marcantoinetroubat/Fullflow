@@ -145,6 +145,18 @@ internal fun ChatAppDialogHost(
     modelProviderNames: Map<String, Boolean>,
     customProviders: List<CustomProviderConfig>,
     isCompacting: Boolean,
+    geminiLiveVisible: Boolean = false,
+    onDismissGeminiLive: () -> Unit = {},
+    fullFlowGenMailVisible: Boolean = false,
+    onDismissFullFlowGenMail: () -> Unit = {},
+    onGenerateMail: (String) -> Unit = {},
+    fullFlowPlusVisible: Boolean = false,
+    onDismissFullFlowPlus: () -> Unit = {},
+    onLaunchGeminiLiveFromPlus: () -> Unit = {},
+    onNewChatFromPlus: () -> Unit = {},
+    onOpenTasksFromPlus: () -> Unit = {},
+    onOpenSettingsFromPlus: () -> Unit = {},
+    composerOwnerId: String = "",
 ) {
     var promptDraft by remember { mutableStateOf<SystemPromptEntry?>(null) }
     var pendingCreatedPromptId by remember { mutableStateOf<String?>(null) }
@@ -274,4 +286,24 @@ internal fun ChatAppDialogHost(
             onDismiss = state::dismissManualCompact,
         )
     }
+
+    com.newoether.agora.ui.chat.live.GeminiLiveVoiceHost(
+        visible = geminiLiveVisible,
+        viewModel = viewModel,
+        composerOwnerId = composerOwnerId,
+        scope = rememberCoroutineScope(),
+        onDismissRequest = onDismissGeminiLive,
+    )
+
+    com.newoether.agora.ui.chat.fullflow.FullFlowDialogsHost(
+        showGenMail = fullFlowGenMailVisible,
+        onDismissGenMail = onDismissFullFlowGenMail,
+        onGenerateMail = onGenerateMail,
+        showPlus = fullFlowPlusVisible,
+        onDismissPlus = onDismissFullFlowPlus,
+        onLaunchGeminiLive = onLaunchGeminiLiveFromPlus,
+        onNewChat = onNewChatFromPlus,
+        onOpenTasks = onOpenTasksFromPlus,
+        onOpenSettings = onOpenSettingsFromPlus,
+    )
 }

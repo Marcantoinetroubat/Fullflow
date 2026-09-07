@@ -155,8 +155,8 @@ class MainActivity : ComponentActivity() {
             val customFontPath by settingsManager.customFontPath.collectAsState(initial = "")
             val appReduceMotion by settingsManager.reduceMotion.collectAsState(initial = false)
 
-            val themeModeEnum = try { com.newoether.agora.ui.theme.ThemeMode.valueOf(themeMode) } catch (_: Exception) { com.newoether.agora.ui.theme.ThemeMode.FOLLOW_DEVICE }
-            val colorSchemePreset = try { com.newoether.agora.ui.theme.ColorSchemePreset.valueOf(colorSchemeName) } catch (_: Exception) { com.newoether.agora.ui.theme.ColorSchemePreset.FOREST }
+            val themeModeEnum = try { com.newoether.agora.ui.theme.ThemeMode.valueOf(themeMode) } catch (_: Exception) { com.newoether.agora.ui.theme.ThemeMode.DARK }
+            val colorSchemePreset = try { com.newoether.agora.ui.theme.ColorSchemePreset.valueOf(colorSchemeName) } catch (_: Exception) { com.newoether.agora.ui.theme.ColorSchemePreset.FULLFLOW }
             val schemeStyle = try { com.newoether.agora.ui.theme.SchemeStyle.valueOf(schemeStyleName) } catch (_: Exception) { com.newoether.agora.ui.theme.SchemeStyle.TONAL_SPOT }
 
             val systemDark = isSystemInDarkTheme()
@@ -278,6 +278,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleNavigationIntent(intent: Intent?) {
+        intent?.data?.let { uri ->
+            if (uri.scheme == "com.newoether.agora" && uri.host == "oauth2redirect") {
+                com.newoether.agora.workspace.drive.GoogleDriveWorkspaceController.handleRedirectUri(this, uri)
+                com.newoether.agora.workspace.drive.GoogleDriveWorkspaceController.openDriveDashboard()
+                return
+            }
+        }
         notificationConversationId.value = intent?.getStringExtra(EXTRA_CONVERSATION_ID)
             ?.takeIf { it.isNotBlank() }
             ?: intent?.data?.takeIf { uri ->
@@ -906,69 +913,13 @@ fun MainNavigation(
                 }
             }
 
-            val current = snackbarHostState.currentSnackbarData
-            var showing by remember { mutableStateOf(false) }
-            var content by remember { mutableStateOf<SnackbarData?>(null) }
-
-            LaunchedEffect(current, snackbarVersion) {
-                if (current != null) {
-                    if (showing) { showing = false; delay(200) }
-                    content = current
-                    showing = true
-                } else {
-                    showing = false
-                    delay(400)
-                    content = null
-                }
-            }
-
-            LaunchedEffect(content, accessibilityManager) {
-                val data = content ?: return@LaunchedEffect
-                val timeoutMillis = snackbarTimeoutMillis(data.visuals, accessibilityManager)
-                if (timeoutMillis != Long.MAX_VALUE) {
-                    delay(timeoutMillis)
-                    if (snackbarHostState.currentSnackbarData === data) {
-                        data.dismiss()
-                    }
-                }
-            }
-
-            AnimatedVisibility(
-                visible = showing,
-                enter = if (motionPolicy.allowSpatialTransitions) {
-                    fadeIn(tween(400)) + scaleIn(tween(400), initialScale = 0.8f)
-                } else {
-                    fadeIn(tween(400))
-                },
-                exit = if (motionPolicy.allowSpatialTransitions) {
-                    fadeOut(tween(400)) + scaleOut(tween(400), targetScale = 0.8f)
-                } else {
-                    fadeOut(tween(400))
-                },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = snackbarBottomPadding + 2.dp)
-            ) {
-                content?.let { data ->
-                    Snackbar(
-                        modifier = Modifier.padding(horizontal = 12.dp).padding(vertical = 10.dp).shadow(6.dp, RoundedCornerShape(12.dp), clip = false),
-                        shape = RoundedCornerShape(12.dp),
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        actionContentColor = MaterialTheme.colorScheme.primary,
-                        dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        dismissAction = @Composable {
-                            Box(modifier = Modifier.padding(end = 8.dp)) {
-                                IconButton(onClick = { data.dismiss() }, modifier = Modifier.size(28.dp).clip(CircleShape)) {
-                                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cancel), modifier = Modifier.size(18.dp))
-                                }
-                            }
-                        },
-                        action = data.visuals.actionLabel?.let { label ->
-                            @Composable { TextButton(onClick = { data.performAction() }) { Text(label) } }
-                        },
-                        content = { Text(data.visuals.message) }
-                    )
-                }
-            }
+            com.newoether.agora.ui.MainNavigationSnackbarHost(
+                snackbarHostState = snackbarHostState,
+                snackbarVersion = snackbarVersion,
+                accessibilityManager = accessibilityManager,
+                motionPolicy = motionPolicy,
+                snackbarBottomPadding = snackbarBottomPadding,
+            )
         }
     }
 }
@@ -978,20 +929,3 @@ internal fun consumeNotificationTarget(
     expectedId: String,
 ): Boolean = target.compareAndSet(expectedId, null)
 
-private fun snackbarTimeoutMillis(
-    visuals: SnackbarVisuals,
-    accessibilityManager: AccessibilityManager?
-): Long {
-    val durationMillis = when (visuals.duration) {
-        SnackbarDuration.Short -> 4000L
-        SnackbarDuration.Long -> 10000L
-        SnackbarDuration.Indefinite -> Long.MAX_VALUE
-    }
-    if (durationMillis == Long.MAX_VALUE) return durationMillis
-    return accessibilityManager?.calculateRecommendedTimeoutMillis(
-        originalTimeoutMillis = durationMillis,
-        containsIcons = true,
-        containsText = true,
-        containsControls = visuals.actionLabel != null
-    ) ?: durationMillis
-}

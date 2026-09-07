@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -880,6 +881,18 @@ internal fun AssistantMessageContent(
                                     },
                                     enabled = actionAvailability.informationEnabled,
                                     leadingIcon = { Icon(Icons.Default.Info, null) },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.audio_read_aloud)) },
+                                    onClick = {
+                                        showMenu = false
+                                        val textToSpeak = actionCopyText ?: message.text
+                                        if (textToSpeak.isNotBlank()) {
+                                            com.newoether.agora.ui.chat.audio.FullFlowAudioController.openTts(textToSpeak)
+                                        }
+                                    },
+                                    enabled = actionAvailability.terminalEnabled,
+                                    leadingIcon = { Icon(Icons.Default.VolumeUp, null) },
                                 )
                                 DropdownMenuItem(
                                     text = {

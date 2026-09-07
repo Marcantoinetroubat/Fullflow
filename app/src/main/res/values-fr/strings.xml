@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Agora</string>
-    <string name="agora_responded">Agora a répondu</string>
+    <string name="app_name">FullFlow</string>
+    <string name="agora_responded">FullFlow a répondu</string>
 
     <!-- Chat Bottom Bar -->
     <string name="add_attachment">Ajouter une pièce jointe</string>
@@ -579,6 +579,7 @@
     <string name="theme_mode_dark">Sombre</string>
     <string name="theme_mode_follow_device">Suivre l\'appareil</string>
     <string name="color_scheme">Schéma de couleurs</string>
+    <string name="color_scheme_fullflow">FullFlow (Noir)</string>
     <string name="color_scheme_midnight">Minuit</string>
     <string name="color_scheme_nordic">Nordique</string>
     <string name="color_scheme_forest">Forêt</string>
@@ -715,7 +716,12 @@
     <string name="play">Lire</string>
     <string name="video_preview">Aperçu de la vidéo</string>
     <string name="total_tokens">Total : %1$d tokens</string>
-    <string name="welcome_to_agora">Bienvenue sur Agora.</string>
+    <string name="welcome_to_agora">FULLFLOW</string>
+    <string name="search_fullflow_hint">Rechercher...</string>
+    <string name="tab_home">Accueil</string>
+    <string name="tab_genmail">GenMail</string>
+    <string name="tab_plus">Plus</string>
+    <string name="tab_profile">Profil</string>
     <string name="database_incompatible">Base de données incompatible</string>
     <string name="database_incompatible_desc">La base de données est incompatible avec cette version d\'Agora. Veuillez effacer la base de données et redémarrer l\'application.</string>
     <string name="quit">Quitter</string>
@@ -1247,4 +1253,45 @@
     <string name="composer_clear_failed">Le message a été envoyé, mais le brouillon n’a pas pu être effacé.</string>
     <string name="models_show_provider_name">Afficher le nom du fournisseur</string>
     <string name="models_show_provider_name_desc">Ajouter le nom du fournisseur après le nom du modèle.</string>
+
+    <!-- FullFlow Audio Studio & TTS Strings (Français) -->
+    <string name="audio_studio_title">Studio Audio FullFlow</string>
+    <string name="audio_studio_subtitle">Transcription en direct, Synthèse vocale &amp; Fichiers</string>
+    <string name="tab_live_transcription">En direct</string>
+    <string name="tab_text_to_speech">Synthèse vocale (TTS)</string>
+    <string name="tab_audio_files">Fichiers audio</string>
+    <string name="audio_mic_permission_required">Autorisation microphone requise</string>
+    <string name="audio_mic_permission_desc">FullFlow a besoin de l\'accès au microphone pour la retranscription en direct et l\'enregistrement vocal.</string>
+    <string name="audio_grant_permission">Autoriser le microphone</string>
+    <string name="audio_listening">Écoute et transcription en direct...</string>
+    <string name="audio_ready">Appuyez sur le micro pour parler</string>
+    <string name="audio_paused">Transcription suspendue</string>
+    <string name="audio_copy">Copier</string>
+    <string name="audio_copied">Transcription copiée dans le presse-papiers</string>
+    <string name="audio_insert_to_chat">Insérer dans le chat</string>
+    <string name="audio_share">Partager</string>
+    <string name="audio_clear">Effacer</string>
+    <string name="audio_read_aloud">Lire à voix haute (TTS)</string>
+    <string name="audio_tts_title">Conversion Texte en Parole</string>
+    <string name="audio_tts_input_placeholder">Écrivez ou collez le texte à vocaliser...</string>
+    <string name="audio_tts_play">Lire le texte</string>
+    <string name="audio_tts_stop">Arrêter</string>
+    <string name="audio_tts_pause">Pause</string>
+    <string name="audio_tts_speed">Vitesse d\'élocution</string>
+    <string name="audio_tts_pitch">Tonalité / Hauteur</string>
+    <string name="audio_tts_language">Langue de lecture</string>
+    <string name="audio_tts_sample_intro">Bonjour ! Bienvenue sur FullFlow, votre espace d\'intelligence souverain et épuré.</string>
+    <string name="audio_tts_sample_summary">Voici un récapitulatif clair et structuré de nos récents échanges.</string>
+    <string name="audio_import_file">Importer un fichier audio</string>
+    <string name="audio_record_memo">Enregistrer un mémo vocal</string>
+    <string name="audio_recording">Enregistrement audio en cours...</string>
+    <string name="audio_stop_recording">Arrêter &amp; Retranscrire</string>
+    <string name="audio_transcribe_button">Retranscrire l\'audio avec l\'IA</string>
+    <string name="audio_transcribing">Analyse et retranscription en cours...</string>
+    <string name="audio_transcription_result">Retranscription textuelle</string>
+    <string name="audio_transcription_summary">Points clés &amp; Synthèse</string>
+    <string name="audio_no_file_selected">Aucun fichier audio sélectionné</string>
+    <string name="audio_supported_formats">Formats supportés : MP3, WAV, M4A, OGG, AAC, FLAC</string>
+    <string name="audio_studio_hub_title">Studio Audio &amp; Voix</string>
+    <string name="audio_studio_hub_subtitle">Transcription temps réel, TTS naturel &amp; fichiers audio</string>
 </resources>

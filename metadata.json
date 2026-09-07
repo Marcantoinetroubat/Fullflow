@@ -1,6 +1,6 @@
 {
-  "name": "Agora",
-  "description": "An Android BYOK client for Large Language Models with multi-provider support, agentic workflows, and local conversation management.",
+  "name": "FullFlow",
+  "description": "FullFlow - Ultra-sleek tailored AI workspace featuring interactive voice conversations powered by Gemini Live API, GenMail assistant, multi-provider support, and luxury dark aesthetics.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
