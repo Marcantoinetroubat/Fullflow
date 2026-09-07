@@ -8,9 +8,17 @@ object LlamaEngine {
 
     private var nativeHandle: Long = 0L
 
+    private var nativeAvailable = false
+
     init {
-        System.loadLibrary("c++_shared")
-        System.loadLibrary("agora_llama")
+        try {
+            System.loadLibrary("c++_shared")
+            System.loadLibrary("agora_llama")
+            nativeAvailable = true
+        } catch (e: Throwable) {
+            DebugLog.e(TAG, "Native llama library not available", e)
+            nativeAvailable = false
+        }
     }
 
     private external fun nativeInitializeBackends(nativeLibraryDir: String): Boolean
@@ -20,7 +28,14 @@ object LlamaEngine {
     private external fun nativeGetEmbeddingDim(handle: Long): Int
 
     internal fun initializeBackends(nativeLibraryDir: String): Boolean =
-        nativeInitializeBackends(nativeLibraryDir)
+        if (nativeAvailable) {
+            try {
+                nativeInitializeBackends(nativeLibraryDir)
+            } catch (e: Throwable) {
+                DebugLog.e(TAG, "Failed to initialize native llama backends", e)
+                false
+            }
+        } else false
 
     fun isModelReady(modelPath: String): Boolean {
         return modelPath.isNotBlank() && File(modelPath).exists() && File(modelPath).length() > 0

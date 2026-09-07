@@ -1,0 +1,8 @@
+{
+  "name": "Agora",
+  "description": "An Android BYOK client for Large Language Models with multi-provider support, agentic workflows, and local conversation management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -7,21 +7,11 @@ plugins {
     id("buildlogic.removefirstlast-fix")
 }
 
-import java.util.Properties
-
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("local.properties")
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(keystorePropertiesFile.reader())
-}
-
 android {
     namespace = "com.newoether.agora"
     compileSdk {
         version = release(36)
     }
-
-    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.newoether.agora"
@@ -29,19 +19,6 @@ android {
         targetSdk = 36
         versionCode = 31
         versionName = "2.1.0"
-
-
-        ndk {
-            abiFilters += listOf("arm64-v8a")
-        }
-
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++17"
-                arguments += listOf("-DANDROID_STL=c++_shared")
-                targets += listOf("agora_llama", "agora_proot")
-            }
-        }
     }
 
     ksp {
@@ -49,20 +26,19 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = file(keystoreProperties.getProperty("storeFile", "."))
-            storePassword = keystoreProperties.getProperty("storePassword", "")
-            keyAlias = keystoreProperties.getProperty("keyAlias", "")
-            keyPassword = keystoreProperties.getProperty("keyPassword", "")
+        create("debugConfig") {
+            storeFile = file("${rootDir}/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
 
-    val hasKeystore = keystoreProperties.getProperty("storeFile", ".").let { it != "." }
-    val releaseSigning = if (hasKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
-
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("debugConfig")
+        }
         release {
-            signingConfig = releaseSigning
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -71,13 +47,9 @@ android {
         }
     }
 
-    flavorDimensions += "store"
-    productFlavors {
-        create("play") {
-            dimension = "store"
-        }
-        create("fdroid") {
-            dimension = "store"
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/java", "src/play/java")
         }
     }
 
@@ -106,47 +78,6 @@ android {
         jniLibs {
             useLegacyPackaging = true
         }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
-    }
-}
-
-// Proot binaries (libproot_exec.so, libproot_loader.so, libtalloc.so) are
-// built via GNUmakefile (see .build-proot/) and placed directly in jniLibs.
-// No CMake target is needed — the binaries are manually managed prebuilts.
-// talloc is built with SONAME=libtalloc.so (no version) so AGP packaging works.
-
-tasks.register<Copy>("copyPlayApk") {
-    from("build/outputs/apk/play/release")
-    into("release")
-    include("*.apk")
-}
-
-tasks.register<Copy>("copyFdroidApk") {
-    from("build/outputs/apk/fdroid/release")
-    into("release")
-    include("*.apk")
-}
-
-tasks.register<Copy>("copyPlayBundle") {
-    from("build/outputs/bundle/playRelease")
-    into("release")
-    include("*.aab")
-}
-
-afterEvaluate {
-    tasks.named("assemblePlayRelease") {
-        finalizedBy("copyPlayApk")
-    }
-    tasks.named("assembleFdroidRelease") {
-        finalizedBy("copyFdroidApk")
-    }
-    tasks.named("bundlePlayRelease") {
-        finalizedBy("copyPlayBundle")
     }
 }
 
