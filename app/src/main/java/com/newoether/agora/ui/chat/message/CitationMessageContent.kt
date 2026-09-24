@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,8 +72,9 @@ import com.newoether.agora.R
 import com.newoether.agora.model.CitationPolicy
 import com.newoether.agora.model.CitationRecord
 import com.newoether.agora.ui.chat.caseInsensitiveMatchRanges
+import com.newoether.agora.ui.components.SmoothBottomSheet
+import com.newoether.agora.ui.components.rememberSmoothBottomSheetState
 import com.newoether.agora.ui.ds.AgoraAlpha
-import com.newoether.agora.ui.ds.AgoraBottomSheet
 import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.theme.ChatType
 import org.intellij.markdown.ast.ASTNode
@@ -789,48 +791,60 @@ internal fun CitationSourcesBottomSheet(
     onActivate: (CitationRecord) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val sheetState = rememberSmoothBottomSheetState()
+    val listState = rememberLazyListState()
     val sheetSearchSpec = searchSpec?.copy(onMatchPosition = { _, _, _ -> })
     fun activateThenDismiss(source: CitationRecord) {
         onActivate(source)
-        onDismiss()
+        sheetState.requestDismiss()
     }
 
-    AgoraBottomSheet(onDismissRequest = onDismiss) {
-        Text(
-            text = citationSourcesSheetTitle(
-                sourceCount = citations.size,
-                sourcesLabel = stringResource(R.string.citation_sources),
-            ),
-            style = ChatType.detailTitle,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = AgoraSpacing.Xxl, vertical = AgoraSpacing.Md),
-        )
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = AgoraSpacing.Xxl),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = AgoraAlpha.Handle),
-        )
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-                .navigationBarsPadding()
-                .padding(horizontal = AgoraSpacing.Md, vertical = AgoraSpacing.Sm),
-            verticalArrangement = Arrangement.spacedBy(AgoraSpacing.Sm),
-        ) {
-            itemsIndexed(
-                items = citations,
-                key = { _, source -> source.sourceId },
-            ) { index, source ->
-                CitationSourceRow(
-                    messageId = messageId,
-                    number = index + 1,
-                    source = source,
-                    searchSpec = sheetSearchSpec,
-                    onActivate = { activateThenDismiss(source) },
-                )
+    SmoothBottomSheet(
+        state = sheetState,
+        onDismissRequest = onDismiss,
+        contentAtTop = {
+            listState.firstVisibleItemIndex == 0 &&
+                listState.firstVisibleItemScrollOffset == 0
+        },
+        header = {
+            Text(
+                text = citationSourcesSheetTitle(
+                    sourceCount = citations.size,
+                    sourcesLabel = stringResource(R.string.citation_sources),
+                ),
+                style = ChatType.detailTitle,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = AgoraSpacing.Xxl, vertical = AgoraSpacing.Md),
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = AgoraSpacing.Xxl),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = AgoraAlpha.Handle),
+            )
+        },
+        content = {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .padding(horizontal = AgoraSpacing.Md, vertical = AgoraSpacing.Sm),
+                verticalArrangement = Arrangement.spacedBy(AgoraSpacing.Sm),
+            ) {
+                itemsIndexed(
+                    items = citations,
+                    key = { _, source -> source.sourceId },
+                ) { index, source ->
+                    CitationSourceRow(
+                        messageId = messageId,
+                        number = index + 1,
+                        source = source,
+                        searchSpec = sheetSearchSpec,
+                        onActivate = { activateThenDismiss(source) },
+                    )
+                }
             }
-        }
-    }
+        },
+    )
 }
 
 @Composable
