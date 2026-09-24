@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.model.ToolCallDisplayModes
 import com.newoether.agora.model.ThinkingSegmentDisplayModes
 import com.newoether.agora.ui.theme.ColorSchemePreset
@@ -65,6 +67,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
     val stickToBottom by viewModel.settings.stickToBottom.collectAsState()
     val parseInlineDollarMath by viewModel.settings.parseInlineDollarMath.collectAsState()
     val hapticsEnabled by viewModel.settings.hapticsEnabled.collectAsState()
+    val soundsEnabled by viewModel.settings.soundsEnabled.collectAsState()
 
     val toolCallDisplayMode by viewModel.settings.toolCallDisplayMode.collectAsState()
     val thinkingSegmentDisplayMode by viewModel.settings.thinkingSegmentDisplayMode.collectAsState()
@@ -167,7 +170,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                 headlineContent = { Text(stringResource(R.string.theme_mode)) },
                                 supportingContent = { Text(selectedLabel) },
                                 leadingContent = {
-                                    Icon(selectedIcon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                                    Icon(selectedIcon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(AgoraSpacing.Xxl))
                                 },
                                 trailingContent = {
                                     Box {
@@ -175,7 +178,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             selectedLabel,
                                             style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.width(96.dp).padding(end = 4.dp),
+                                            modifier = Modifier.width(96.dp).padding(end = AgoraSpacing.Xs),
                                             textAlign = TextAlign.End,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
@@ -184,7 +187,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             expanded = expanded,
                                             onDismissRequest = { expanded = false },
                                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                            tonalElevation = 16.dp,
+                                            tonalElevation = AgoraSpacing.Lg,
                                             shape = RoundedCornerShape(12.dp)
                                         ) {
                                             options.forEach { (mode, pair) ->
@@ -218,7 +221,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                     Icons.Default.Contrast,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(AgoraSpacing.Xxl),
                                 )
                             },
                             trailingContent = { Switch(checked = amoledEnabled, onCheckedChange = null) },
@@ -239,7 +242,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Icons.Default.Palette,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -266,7 +269,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                             leadingContent = {
                                 Box(
                                     modifier = Modifier
-                                        .size(24.dp)
+                                        .size(AgoraSpacing.Xxl)
                                         .clip(CircleShape)
                                         .background(currentPrimary)
                                 )
@@ -277,7 +280,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         currentLabel,
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.width(96.dp).padding(end = 4.dp),
+                                        modifier = Modifier.width(96.dp).padding(end = AgoraSpacing.Xs),
                                         textAlign = TextAlign.End,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -286,7 +289,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         expanded = expanded,
                                         onDismissRequest = { expanded = false },
                                         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                        tonalElevation = 16.dp,
+                                        tonalElevation = AgoraSpacing.Lg,
                                         shape = RoundedCornerShape(12.dp)
                                     ) {
                                         ColorSchemePreset.entries.forEach { preset ->
@@ -299,7 +302,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                                     if (preset == currentPreset) Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary)
                                                 },
                                                 trailingIcon = {
-                                                    Box(modifier = Modifier.size(20.dp).clip(CircleShape).background(presetPrimary))
+                                                    Box(modifier = Modifier.size(AgoraSpacing.Xl).clip(CircleShape).background(presetPrimary))
                                                 },
                                                 onClick = { viewModel.settings.setColorScheme(preset.name); expanded = false }
                                             )
@@ -321,7 +324,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                     Icons.Default.Style,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(AgoraSpacing.Xxl),
                                 )
                             },
                             trailingContent = {
@@ -330,7 +333,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         currentLabel,
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.width(96.dp).padding(end = 4.dp),
+                                        modifier = Modifier.width(96.dp).padding(end = AgoraSpacing.Xs),
                                         textAlign = TextAlign.End,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -339,7 +342,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         expanded = expanded,
                                         onDismissRequest = { expanded = false },
                                         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                        tonalElevation = 16.dp,
+                                        tonalElevation = AgoraSpacing.Lg,
                                         shape = RoundedCornerShape(12.dp)
                                     ) {
                                         SchemeStyle.entries.forEach { style ->
@@ -373,7 +376,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Icons.Default.BlurOn,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -394,7 +397,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Icons.Default.MotionPhotosOff,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -417,7 +420,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Icons.Default.Vibration,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -428,6 +431,29 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                 },
                                 modifier = Modifier.clickable {
                                     viewModel.settings.setHapticsEnabled(!hapticsEnabled)
+                                }
+                            )
+                        }
+                        add {
+                            SettingsItem(
+                                headlineContent = { Text(stringResource(R.string.sounds_identity)) },
+                                supportingContent = { Text(stringResource(R.string.sounds_identity_desc)) },
+                                leadingContent = {
+                                    Icon(
+                                        Icons.Default.VolumeUp,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
+                                    )
+                                },
+                                trailingContent = {
+                                    Switch(
+                                        checked = soundsEnabled,
+                                        onCheckedChange = { viewModel.settings.setSoundsEnabled(it) }
+                                    )
+                                },
+                                modifier = Modifier.clickable {
+                                    viewModel.settings.setSoundsEnabled(!soundsEnabled)
                                 }
                             )
                         }
@@ -447,7 +473,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Icons.Default.VerticalAlignBottom,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -470,7 +496,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Icons.Default.Functions,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -509,7 +535,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         painter = painterResource(R.drawable.material_symbol_lists_24),
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -518,14 +544,14 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             selectedLabel,
                                             style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.width(72.dp).padding(end = 4.dp),
+                                            modifier = Modifier.width(72.dp).padding(end = AgoraSpacing.Xs),
                                             textAlign = TextAlign.End,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                         DropdownMenu(
                                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                            tonalElevation = 16.dp,
+                                            tonalElevation = AgoraSpacing.Lg,
                                             expanded = expanded,
                                             onDismissRequest = { expanded = false },
                                             shape = RoundedCornerShape(12.dp)
@@ -575,7 +601,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             Icons.Default.ViewAgenda,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp),
+                                            modifier = Modifier.size(AgoraSpacing.Xxl),
                                         )
                                     },
                                     trailingContent = {
@@ -589,7 +615,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                                 expanded = expanded,
                                                 onDismissRequest = { expanded = false },
                                                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                                tonalElevation = 16.dp,
+                                                tonalElevation = AgoraSpacing.Lg,
                                                 shape = RoundedCornerShape(12.dp),
                                             ) {
                                                 listOf(
@@ -651,7 +677,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             ),
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp),
+                                            modifier = Modifier.size(AgoraSpacing.Xxl),
                                         )
                                     },
                                     trailingContent = {
@@ -697,7 +723,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Icons.Default.TextFields,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(AgoraSpacing.Xxl),
                                     )
                                 },
                                 trailingContent = {
@@ -706,7 +732,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             selectedLabel,
                                             style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.width(96.dp).padding(end = 4.dp),
+                                            modifier = Modifier.width(96.dp).padding(end = AgoraSpacing.Xs),
                                             textAlign = TextAlign.End,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
@@ -715,7 +741,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             expanded = expanded,
                                             onDismissRequest = { expanded = false },
                                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                            tonalElevation = 16.dp,
+                                            tonalElevation = AgoraSpacing.Lg,
                                             shape = RoundedCornerShape(12.dp)
                                         ) {
                                             options.forEach { (value, label) ->
@@ -765,7 +791,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             imageVector = Icons.Default.UploadFile,
                                             contentDescription = null,
                                             tint = if (hasFont) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp)
+                                            modifier = Modifier.size(AgoraSpacing.Xxl)
                                         )
                                     },
                                     modifier = Modifier.clickable { fontPickerLauncher.launch(arrayOf("font/*", "*/*")) }
@@ -781,6 +807,7 @@ fun SettingsAppearancePage(viewModel: ChatViewModel, onBack: () -> Unit) {
 
 @Composable
 private fun presetDisplayName(preset: ColorSchemePreset): String = when (preset) {
+    ColorSchemePreset.FULLFLOW -> stringResource(R.string.color_scheme_fullflow)
     ColorSchemePreset.MIDNIGHT -> stringResource(R.string.color_scheme_midnight)
     ColorSchemePreset.NORDIC -> stringResource(R.string.color_scheme_nordic)
     ColorSchemePreset.FOREST -> stringResource(R.string.color_scheme_forest)

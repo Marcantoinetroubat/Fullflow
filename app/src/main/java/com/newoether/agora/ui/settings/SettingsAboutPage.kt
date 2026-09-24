@@ -113,6 +113,16 @@ fun SettingsAboutPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                     leadingContent = { Icon(Icons.Default.Info, contentDescription = null) },
                     modifier = Modifier.clickable(onClick = ::onVersionTapped),
                 )
+            }, {
+                SettingsItem(
+                    headlineContent = { Text("Présentation vidéo (Onboarding)") },
+                    supportingContent = { Text("Revoir les 4 vidéos d'introduction de l'application") },
+                    leadingContent = { Icon(Icons.Default.PlayCircleOutline, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        viewModel.settings.setOnboardingCompleted(false)
+                        onBack()
+                    }
+                )
             }))
 
             // -- Updates --

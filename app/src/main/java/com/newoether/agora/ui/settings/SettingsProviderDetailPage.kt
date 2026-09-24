@@ -7,9 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldState
+import com.newoether.agora.ui.components.OutlinedTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,6 +39,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
+import com.newoether.agora.ui.ds.AgoraDialog
+import com.newoether.agora.ui.ds.AgoraRadii
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.data.ApiKeyEntry
 import com.newoether.agora.data.CustomEndpointProtocol
 import com.newoether.agora.data.CustomProviderNamePolicy
@@ -180,7 +183,7 @@ fun SettingsProviderDetailPage(
             if (isCustom) {
                 Box {
                     IconButton(onClick = { providerMenuExpanded = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.options)) }
-                    DropdownMenu(expanded = providerMenuExpanded, onDismissRequest = { providerMenuExpanded = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 16.dp, shape = RoundedCornerShape(12.dp)) {
+                    DropdownMenu(expanded = providerMenuExpanded, onDismissRequest = { providerMenuExpanded = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = AgoraSpacing.Lg, shape = AgoraRadii.Sm) {
                         DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, leadingIcon = { Icon(Icons.Default.Edit, null) }, onClick = { providerMenuExpanded = false; showRenameProvider = true })
                         DropdownMenuItem(text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }, onClick = { providerMenuExpanded = false; showDeleteProvider = true })
                     }
@@ -234,17 +237,17 @@ fun SettingsProviderDetailPage(
                     ),
                     items = buildList {
                         add {
-                            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)) {
+                            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Lg)) {
                                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                                     Icon(painterResource(R.drawable.link_24), null, tint = MaterialTheme.colorScheme.primary)
-                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(stringResource(R.string.provider_base_url), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = MaterialTheme.colorScheme.onSurface)
-                                        Box(modifier = Modifier.noOpBringIntoView().padding(top = 8.dp)) {
+                                        Box(modifier = Modifier.noOpBringIntoView().padding(top = AgoraSpacing.Sm)) {
                                             OutlinedTextField(
                                                 state = baseUrlState,
                                                 placeholder = { Text(placeholderUrl, style = MaterialTheme.typography.bodyMedium) },
-                                                shape = RoundedCornerShape(16.dp),
+                                                shape = AgoraRadii.Field,
                                                 modifier = Modifier.fillMaxWidth(),
                                                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                             )
@@ -261,7 +264,7 @@ fun SettingsProviderDetailPage(
                                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                                         color = MaterialTheme.colorScheme.onSurface,
                                     )
-                                    Spacer(Modifier.height(10.dp))
+                                    Spacer(Modifier.height(AgoraSpacing.Md))
                                     CustomEndpointProtocolSelector(
                                         selected = config.protocol,
                                         onSelected = { protocol ->
@@ -357,47 +360,47 @@ fun SettingsProviderDetailPage(
                                             Icons.Default.AutoAwesome,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp)
+                                            modifier = Modifier.size(AgoraSpacing.Xxl)
                                         )
                                     },
                                     supportingContent = {
                                         Row(
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(AgoraSpacing.Sm),
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier.padding(top = 1.dp)
                                         ) {
                                             if (model.mmprojPath.isNotBlank()) {
                                                 Surface(
-                                                    shape = RoundedCornerShape(5.dp),
+                                                    shape = AgoraRadii.GroupJoint,
                                                     color = MaterialTheme.colorScheme.tertiaryContainer,
                                                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                                                 ) {
-                                                    Row(modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(Icons.Default.Visibility, null, modifier = Modifier.size(10.dp))
+                                                    Row(modifier = Modifier.padding(horizontal = AgoraSpacing.Sm, vertical = AgoraSpacing.Xxs), verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(Icons.Default.Visibility, null, modifier = Modifier.size(AgoraSpacing.Md))
                                                         Spacer(Modifier.width(3.dp))
                                                         Text(stringResource(R.string.provider_vision_badge), style = MaterialTheme.typography.labelSmall)
                                                     }
                                                 }
                                             }
                                             Surface(
-                                                shape = RoundedCornerShape(5.dp),
+                                                shape = AgoraRadii.GroupJoint,
                                                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
                                                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                             ) {
                                                 Text(
                                                     "Context=${model.nCtx}",
-                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                    modifier = Modifier.padding(horizontal = AgoraSpacing.Sm, vertical = AgoraSpacing.Xxs),
                                                     style = MaterialTheme.typography.labelSmall
                                                 )
                                             }
                                             Surface(
-                                                shape = RoundedCornerShape(5.dp),
+                                                shape = AgoraRadii.GroupJoint,
                                                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
                                                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                             ) {
                                                 Text(
                                                     "T=${model.temperature}",
-                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                    modifier = Modifier.padding(horizontal = AgoraSpacing.Sm, vertical = AgoraSpacing.Xxs),
                                                     style = MaterialTheme.typography.labelSmall
                                                 )
                                             }
@@ -405,8 +408,8 @@ fun SettingsProviderDetailPage(
                                     },
                                     trailingContent = {
                                         Box {
-                                            IconButton(onClick = { showMenu = true }, modifier = Modifier.size(24.dp)) { Icon(Icons.Default.MoreVert, stringResource(R.string.options), modifier = Modifier.size(18.dp)) }
-                                            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 16.dp, shape = RoundedCornerShape(12.dp)) {
+                                            IconButton(onClick = { showMenu = true }, modifier = Modifier.size(AgoraSpacing.Xxl)) { Icon(Icons.Default.MoreVert, stringResource(R.string.options), modifier = Modifier.size(AgoraSpacing.Xl)) }
+                                            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = AgoraSpacing.Lg, shape = AgoraRadii.Sm) {
                                                 DropdownMenuItem(text = { Text(stringResource(R.string.edit)) }, leadingIcon = { Icon(Icons.Default.Edit, null) }, onClick = { showMenu = false; showEditModelDialog = model })
                                                 DropdownMenuItem(text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }, onClick = { showMenu = false; showDeleteModelConfirm = model })
                                             }
@@ -416,17 +419,17 @@ fun SettingsProviderDetailPage(
                             }
                         }
                         add {
-                            Box(modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(enabled = !importingModel) { filePickerLauncher.launch(arrayOf("*/*")) }.padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+                            Box(modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(enabled = !importingModel) { filePickerLauncher.launch(arrayOf("*/*")) }.padding(horizontal = AgoraSpacing.Lg), contentAlignment = Alignment.Center) {
                                 if (importingModel) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        CircularProgressIndicator(modifier = Modifier.size(AgoraSpacing.Xl), strokeWidth = 2.dp)
+                                        Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
                                         Text(stringResource(R.string.importing_model), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                                     }
                                 } else {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Icon(Icons.Default.Add, null, modifier = Modifier.size(AgoraSpacing.Xl), tint = MaterialTheme.colorScheme.primary)
+                                        Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
                                         Text(stringResource(R.string.import_model_chat), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                                     }
                                 }
@@ -515,11 +518,11 @@ fun SettingsProviderDetailPage(
                                     SettingsItem(
                                         headlineContent = { Text(entry.name, fontWeight = FontWeight.Medium) },
                                         supportingContent = { Text(entry.key.take(4) + "••••••••" + entry.key.takeLast(4)) },
-                                        leadingContent = { Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) { RadioButton(selected = isCurrentActive, onClick = { viewModel.settings.setActiveApiKey(currentName, entry.id) }, modifier = Modifier.size(20.dp)) } },
+                                        leadingContent = { Box(modifier = Modifier.size(AgoraSpacing.Xxl), contentAlignment = Alignment.Center) { RadioButton(selected = isCurrentActive, onClick = { viewModel.settings.setActiveApiKey(currentName, entry.id) }, modifier = Modifier.size(AgoraSpacing.Xl)) } },
                                         trailingContent = {
                                             Box {
-                                                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(24.dp)) { Icon(Icons.Default.MoreVert, stringResource(R.string.options), modifier = Modifier.size(18.dp)) }
-                                                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 16.dp, shape = RoundedCornerShape(12.dp)) {
+                                                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(AgoraSpacing.Xxl)) { Icon(Icons.Default.MoreVert, stringResource(R.string.options), modifier = Modifier.size(AgoraSpacing.Xl)) }
+                                                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = AgoraSpacing.Lg, shape = AgoraRadii.Sm) {
                                                     DropdownMenuItem(text = { Text(stringResource(R.string.provider_edit)) }, leadingIcon = { Icon(Icons.Default.Edit, null) }, onClick = { showMenu = false; showKeyDialog = entry })
                                                     DropdownMenuItem(text = { Text(stringResource(R.string.provider_delete), color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }, onClick = { showMenu = false; showDeleteKeyConfirm = entry })
                                                 }
@@ -552,7 +555,13 @@ fun SettingsProviderDetailPage(
 
     // --- Dialogs ---
     if (showGgufError) {
-        AlertDialog(containerColor = MaterialTheme.colorScheme.surfaceContainer, onDismissRequest = { showGgufError = false }, title = { Text(stringResource(R.string.import_invalid_gguf_title), fontWeight = FontWeight.Bold) }, text = { Text(stringResource(R.string.import_invalid_gguf_desc)) }, confirmButton = { TextButton(onClick = { showGgufError = false }) { Text(stringResource(R.string.ok)) } })
+        AgoraDialog(
+            title = stringResource(R.string.import_invalid_gguf_title),
+            onDismissRequest = { showGgufError = false },
+            confirmText = stringResource(R.string.ok),
+            onConfirm = { showGgufError = false },
+            text = { Text(stringResource(R.string.import_invalid_gguf_desc)) },
+        )
     }
 
     // Add model dialog
@@ -578,19 +587,19 @@ fun SettingsProviderDetailPage(
             },
             title = { Text(stringResource(R.string.add_local_chat_model), fontWeight = FontWeight.Bold) },
             text = { Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                OutlinedTextField(value = modelId, onValueChange = { modelId = it; idError = null }, label = { Text(stringResource(R.string.model_id_label)) }, supportingText = if (idError != null) {{ Text(idError!!, color = MaterialTheme.colorScheme.error) }} else null, isError = idError != null, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = modelAlias, onValueChange = { modelAlias = it }, label = { Text(stringResource(R.string.model_alias_label)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = nCtx, onValueChange = { nCtx = it }, label = { Text(stringResource(R.string.local_ctx_size)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = modelId, onValueChange = { modelId = it; idError = null }, label = { Text(stringResource(R.string.model_id_label)) }, supportingText = if (idError != null) {{ Text(idError!!, color = MaterialTheme.colorScheme.error) }} else null, isError = idError != null, shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = modelAlias, onValueChange = { modelAlias = it }, label = { Text(stringResource(R.string.model_alias_label)) }, shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = nCtx, onValueChange = { nCtx = it }, label = { Text(stringResource(R.string.local_ctx_size)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val hasMmproj = addMmprojPath.isNotBlank()
-                    OutlinedButton(onClick = { mmprojLauncher.launch(arrayOf("*/*")) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1f), colors = ButtonDefaults.outlinedButtonColors(contentColor = if (hasMmproj) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp)); Spacer(modifier = Modifier.width(6.dp)); Text(if (hasMmproj) addMmprojPath.split("/").lastOrNull() ?: "" else stringResource(R.string.local_mmproj_path_label), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    OutlinedButton(onClick = { mmprojLauncher.launch(arrayOf("*/*")) }, shape = AgoraRadii.Field, modifier = Modifier.weight(1f), colors = ButtonDefaults.outlinedButtonColors(contentColor = if (hasMmproj) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)) {
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(AgoraSpacing.Xl)); Spacer(modifier = Modifier.width(AgoraSpacing.Sm)); Text(if (hasMmproj) addMmprojPath.split("/").lastOrNull() ?: "" else stringResource(R.string.local_mmproj_path_label), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (hasMmproj) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
                         TextButton(onClick = {
                             val removedPath = addMmprojPath
                             addMmprojPath = ""
@@ -598,13 +607,13 @@ fun SettingsProviderDetailPage(
                         }) { Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error) }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = temperature, onValueChange = { temperature = it }, label = { Text(stringResource(R.string.local_temperature)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = topP, onValueChange = { topP = it }, label = { Text(stringResource(R.string.local_top_p)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = maxTokens, onValueChange = { maxTokens = it }, label = { Text(stringResource(R.string.local_max_tokens)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                formError?.let { Spacer(modifier = Modifier.height(8.dp)); Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = temperature, onValueChange = { temperature = it }, label = { Text(stringResource(R.string.local_temperature)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = topP, onValueChange = { topP = it }, label = { Text(stringResource(R.string.local_top_p)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = maxTokens, onValueChange = { maxTokens = it }, label = { Text(stringResource(R.string.local_max_tokens)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                formError?.let { Spacer(modifier = Modifier.height(AgoraSpacing.Sm)); Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }},
             confirmButton = { TextButton(onClick = {
                 val id = modelId.trim(); idError = null; formError = null
@@ -648,19 +657,19 @@ fun SettingsProviderDetailPage(
             },
             title = { Text(stringResource(R.string.edit), fontWeight = FontWeight.Bold) },
             text = { Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                OutlinedTextField(value = editModelId, onValueChange = { editModelId = it; editIdError = null }, label = { Text(stringResource(R.string.model_id_label)) }, supportingText = if (editIdError != null) {{ Text(editIdError!!, color = MaterialTheme.colorScheme.error) }} else null, isError = editIdError != null, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = editAlias, onValueChange = { editAlias = it }, label = { Text(stringResource(R.string.model_alias_label)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = editNCtx, onValueChange = { editNCtx = it }, label = { Text(stringResource(R.string.local_ctx_size)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = editModelId, onValueChange = { editModelId = it; editIdError = null }, label = { Text(stringResource(R.string.model_id_label)) }, supportingText = if (editIdError != null) {{ Text(editIdError!!, color = MaterialTheme.colorScheme.error) }} else null, isError = editIdError != null, shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = editAlias, onValueChange = { editAlias = it }, label = { Text(stringResource(R.string.model_alias_label)) }, shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = editNCtx, onValueChange = { editNCtx = it }, label = { Text(stringResource(R.string.local_ctx_size)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val hasMmproj = editMmprojPath.isNotBlank()
-                    OutlinedButton(onClick = { mmprojLauncher.launch(arrayOf("*/*")) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1f), colors = ButtonDefaults.outlinedButtonColors(contentColor = if (hasMmproj) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp)); Spacer(modifier = Modifier.width(6.dp)); Text(if (hasMmproj) editMmprojPath.split("/").lastOrNull() ?: "" else stringResource(R.string.local_mmproj_path_label), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    OutlinedButton(onClick = { mmprojLauncher.launch(arrayOf("*/*")) }, shape = AgoraRadii.Field, modifier = Modifier.weight(1f), colors = ButtonDefaults.outlinedButtonColors(contentColor = if (hasMmproj) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)) {
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(AgoraSpacing.Xl)); Spacer(modifier = Modifier.width(AgoraSpacing.Sm)); Text(if (hasMmproj) editMmprojPath.split("/").lastOrNull() ?: "" else stringResource(R.string.local_mmproj_path_label), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (hasMmproj) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
                         TextButton(onClick = {
                             val removedPath = editMmprojPath
                             editMmprojPath = ""
@@ -668,13 +677,13 @@ fun SettingsProviderDetailPage(
                         }) { Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error) }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = editTemp, onValueChange = { editTemp = it }, label = { Text(stringResource(R.string.local_temperature)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = editTopP, onValueChange = { editTopP = it }, label = { Text(stringResource(R.string.local_top_p)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = editMaxTokens, onValueChange = { editMaxTokens = it }, label = { Text(stringResource(R.string.local_max_tokens)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth())
-                editFormError?.let { Spacer(modifier = Modifier.height(8.dp)); Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = editTemp, onValueChange = { editTemp = it }, label = { Text(stringResource(R.string.local_temperature)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = editTopP, onValueChange = { editTopP = it }, label = { Text(stringResource(R.string.local_top_p)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                OutlinedTextField(value = editMaxTokens, onValueChange = { editMaxTokens = it }, label = { Text(stringResource(R.string.local_max_tokens)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth())
+                editFormError?.let { Spacer(modifier = Modifier.height(AgoraSpacing.Sm)); Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }},
             confirmButton = { TextButton(onClick = {
                 val id = editModelId.trim(); editIdError = null; editFormError = null
@@ -698,25 +707,60 @@ fun SettingsProviderDetailPage(
 
     // Delete model confirm
     showDeleteModelConfirm?.let { model ->
-        AlertDialog(containerColor = MaterialTheme.colorScheme.surfaceContainer, onDismissRequest = { showDeleteModelConfirm = null }, title = { Text(stringResource(R.string.local_chat_delete_title), fontWeight = FontWeight.Bold) }, text = { Text(stringResource(R.string.local_chat_delete_text, model.alias)) }, confirmButton = { TextButton(onClick = { viewModel.modelManager.deleteLocalChatModel(model.id); showDeleteModelConfirm = null }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.delete)) } }, dismissButton = { TextButton(onClick = { showDeleteModelConfirm = null }) { Text(stringResource(R.string.cancel)) } })
+        AgoraDialog(
+            title = stringResource(R.string.local_chat_delete_title),
+            onDismissRequest = { showDeleteModelConfirm = null },
+            confirmText = stringResource(R.string.delete),
+            onConfirm = { viewModel.modelManager.deleteLocalChatModel(model.id); showDeleteModelConfirm = null },
+            dismissText = stringResource(R.string.cancel),
+            text = { Text(stringResource(R.string.local_chat_delete_text, model.alias)) },
+            destructive = true,
+        )
     }
 
     // API Key dialog
     showKeyDialog?.let { entry ->
         var name by remember { mutableStateOf(entry.name) }; var key by remember { mutableStateOf(entry.key) }
         val isEdit = apiKeys.any { it.id == entry.id }
-        AlertDialog(modifier = Modifier.clearFocusOnTap(), containerColor = MaterialTheme.colorScheme.surfaceContainer, onDismissRequest = { showKeyDialog = null }, title = { Text(if (isEdit) stringResource(R.string.provider_edit_key) else stringResource(R.string.provider_add_key_title), fontWeight = FontWeight.Bold) }, text = {
-            Column(Modifier.fillMaxWidth()) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.provider_key_name_hint)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().noOpBringIntoView())
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(modifier = Modifier.noOpBringIntoView()) { OutlinedTextField(value = key, onValueChange = { key = it }, label = { Text("${currentName} API Key") }, visualTransformation = PasswordVisualTransformation(), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) }
-            }
-        }, confirmButton = { TextButton(onClick = { if (name.isNotBlank() && key.isNotBlank()) { if (isEdit) viewModel.settings.updateApiKey(entry.id, name, key) else viewModel.settings.addApiKey(name, key, currentName); showKeyDialog = null } }) { Text(if (isEdit) stringResource(R.string.provider_save) else stringResource(R.string.provider_add)) } }, dismissButton = { TextButton(onClick = { showKeyDialog = null }) { Text(stringResource(R.string.cancel)) } })
+        AgoraDialog(
+            title = if (isEdit) stringResource(R.string.provider_edit_key) else stringResource(R.string.provider_add_key_title),
+            onDismissRequest = { showKeyDialog = null },
+            confirmText = if (isEdit) stringResource(R.string.provider_save) else stringResource(R.string.provider_add),
+            onConfirm = { if (name.isNotBlank() && key.isNotBlank()) { if (isEdit) viewModel.settings.updateApiKey(entry.id, name, key) else viewModel.settings.addApiKey(name, key, currentName); showKeyDialog = null } },
+            dismissText = stringResource(R.string.cancel),
+            text = {
+                Column(Modifier.fillMaxWidth()) {
+                    AgoraTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = stringResource(R.string.provider_key_name_hint),
+                        modifier = Modifier.noOpBringIntoView(),
+                    )
+                    Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
+                    Box(modifier = Modifier.noOpBringIntoView()) {
+                        AgoraTextField(
+                            value = key,
+                            onValueChange = { key = it },
+                            label = "${currentName} API Key",
+                            visualTransformation = PasswordVisualTransformation(),
+                        )
+                    }
+                }
+            },
+        )
     }
 
     // Delete key confirm
     showDeleteKeyConfirm?.let { entry ->
-        AlertDialog(containerColor = MaterialTheme.colorScheme.surfaceContainer, onDismissRequest = { showDeleteKeyConfirm = null }, title = { Text(stringResource(R.string.provider_delete_key_title), fontWeight = FontWeight.Bold) }, text = { Text(stringResource(R.string.provider_delete_key_text, entry.name)) }, confirmButton = { TextButton(onClick = { viewModel.settings.deleteApiKey(entry.id); showDeleteKeyConfirm = null }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.provider_delete)) } }, dismissButton = { TextButton(onClick = { showDeleteKeyConfirm = null }) { Text(stringResource(R.string.cancel)) } })
+        AgoraDialog(
+            title = stringResource(R.string.provider_delete_key_title),
+            onDismissRequest = { showDeleteKeyConfirm = null },
+            confirmText = stringResource(R.string.provider_delete),
+            onConfirm = { viewModel.settings.deleteApiKey(entry.id); showDeleteKeyConfirm = null },
+            dismissText = stringResource(R.string.cancel),
+            text = { Text(stringResource(R.string.provider_delete_key_text, entry.name)) },
+            destructive = true,
+        )
     }
 
     // Rename custom provider
@@ -724,7 +768,7 @@ fun SettingsProviderDetailPage(
         var renameValue by remember(currentName) { mutableStateOf(currentName) }
         var renameError by remember { mutableStateOf(false) }
         AlertDialog(modifier = Modifier.clearFocusOnTap(), containerColor = MaterialTheme.colorScheme.surfaceContainer, onDismissRequest = { showRenameProvider = false }, title = { Text(stringResource(R.string.custom_provider_rename_title), fontWeight = FontWeight.Bold) }, text = {
-            OutlinedTextField(value = renameValue, onValueChange = { renameValue = it; renameError = false }, label = { Text(stringResource(R.string.custom_provider_name_label)) }, isError = renameError, supportingText = if (renameError) {{ Text(stringResource(R.string.custom_provider_name_error)) }} else null, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(), singleLine = true)
+            OutlinedTextField(value = renameValue, onValueChange = { renameValue = it; renameError = false }, label = { Text(stringResource(R.string.custom_provider_name_label)) }, isError = renameError, supportingText = if (renameError) {{ Text(stringResource(R.string.custom_provider_name_error)) }} else null, shape = AgoraRadii.Field, modifier = Modifier.fillMaxWidth(), singleLine = true)
         }, confirmButton = { TextButton(onClick = {
             val trimmed = renameValue.trim()
             renameError = CustomProviderNamePolicy.hasConflict(
@@ -742,7 +786,15 @@ fun SettingsProviderDetailPage(
 
     // Delete custom provider
     if (showDeleteProvider) {
-        AlertDialog(containerColor = MaterialTheme.colorScheme.surfaceContainer, onDismissRequest = { showDeleteProvider = false }, title = { Text(stringResource(R.string.custom_provider_delete_title), fontWeight = FontWeight.Bold) }, text = { Text(stringResource(R.string.custom_provider_delete_text, currentName)) }, confirmButton = { TextButton(onClick = { viewModel.deleteCustomProvider(currentName); showDeleteProvider = false; onBack() }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.provider_delete)) } }, dismissButton = { TextButton(onClick = { showDeleteProvider = false }) { Text(stringResource(R.string.cancel)) } })
+        AgoraDialog(
+            title = stringResource(R.string.custom_provider_delete_title),
+            onDismissRequest = { showDeleteProvider = false },
+            confirmText = stringResource(R.string.provider_delete),
+            onConfirm = { viewModel.deleteCustomProvider(currentName); showDeleteProvider = false; onBack() },
+            dismissText = stringResource(R.string.cancel),
+            text = { Text(stringResource(R.string.custom_provider_delete_text, currentName)) },
+            destructive = true,
+        )
     }
 }
 
@@ -777,7 +829,7 @@ private fun LocalModelIdleRetentionSlider(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Lg),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -785,11 +837,11 @@ private fun LocalModelIdleRetentionSlider(
         ) {
             Icon(
                 Icons.Default.Tune,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.local_model_idle_retention),
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp),
+                modifier = Modifier.padding(top = AgoraSpacing.Xxs),
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -811,7 +863,7 @@ private fun LocalModelIdleRetentionSlider(
                     text = stringResource(R.string.local_model_idle_retention_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = AgoraSpacing.Xs),
                 )
                 Slider(
                     value = sliderPosition,
@@ -834,7 +886,7 @@ private fun LocalModelIdleRetentionSlider(
                     steps = presets.size - 2,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp),
+                        .padding(top = AgoraSpacing.Sm),
                 )
             }
         }

@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,33 +44,22 @@ internal fun ChatRenameDialog(
 ) {
     var name by remember(initialName, initialDisplayName) { mutableStateOf(initialDisplayName) }
     var edited by remember(initialName, initialDisplayName) { mutableStateOf(false) }
-    AlertDialog(
-        modifier = Modifier.clearFocusOnTap(),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.rename_chat),
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.rename_chat), fontWeight = FontWeight.Bold) },
+        confirmText = stringResource(R.string.save),
+        onConfirm = { onSave(if (edited) name else initialName) },
+        modifier = Modifier.clearFocusOnTap(),
+        dismissText = stringResource(R.string.cancel),
         text = {
-            OutlinedTextField(
+            com.newoether.agora.ui.ds.AgoraTextField(
                 value = name,
                 onValueChange = {
                     name = it
                     edited = true
                 },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
             )
         },
-        confirmButton = {
-            TextButton(onClick = { onSave(if (edited) name else initialName) }) {
-                Text(stringResource(R.string.save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        }
     )
 }
 
@@ -85,14 +71,25 @@ internal fun ChatDeleteConfirmDialog(
     onDismiss: () -> Unit,
 ) {
     val pending = phase == ChatDeleteDialogPhase.PENDING
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.delete_chat),
         onDismissRequest = onDismiss,
+        confirmText = stringResource(
+            if (phase == ChatDeleteDialogPhase.FAILED) {
+                R.string.retry
+            } else {
+                R.string.delete
+            },
+        ),
+        onConfirm = onConfirm,
+        dismissText = stringResource(R.string.cancel),
+        dismissEnabled = !pending,
+        confirmEnabled = !pending,
         properties = DialogProperties(
             dismissOnBackPress = !pending,
             dismissOnClickOutside = !pending,
         ),
-        title = { Text(stringResource(R.string.delete_chat), fontWeight = FontWeight.Bold) },
+        destructive = true,
         text = {
             Column {
                 Text(stringResource(R.string.delete_chat_confirm))
@@ -105,36 +102,15 @@ internal fun ChatDeleteConfirmDialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = !pending,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
-            ) {
-                if (pending) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 3.dp,
-                    )
-                } else {
-                    Text(
-                        stringResource(
-                            if (phase == ChatDeleteDialogPhase.FAILED) {
-                                R.string.retry
-                            } else {
-                                R.string.delete
-                            },
-                        ),
-                    )
-                }
+        confirmContent = if (pending) {
+            {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 3.dp,
+                )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !pending) {
-                Text(stringResource(R.string.cancel))
-            }
+        } else {
+            null
         },
     )
 }
@@ -168,21 +144,18 @@ internal fun ChatForkConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(
+            if (fromMessage) {
+                R.string.conversation_fork_from_here
+            } else {
+                R.string.conversation_fork
+            },
+        ),
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(
-                    if (fromMessage) {
-                        R.string.conversation_fork_from_here
-                    } else {
-                        R.string.conversation_fork
-                    },
-                ),
-                fontWeight = FontWeight.Bold,
-            )
-        },
+        confirmText = stringResource(R.string.conversation_fork_action),
+        onConfirm = onConfirm,
+        dismissText = stringResource(R.string.cancel),
         text = {
             Text(
                 stringResource(
@@ -193,19 +166,6 @@ internal fun ChatForkConfirmDialog(
                     },
                 )
             )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text(stringResource(R.string.conversation_fork_action))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
         },
     )
 }

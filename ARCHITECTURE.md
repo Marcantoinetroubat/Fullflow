@@ -65,7 +65,8 @@ those instances instead of building competing stacks.
 | `docs` | User-facing MkDocs documentation |
 
 There are two store flavors, `fdroid` and `play`. The application currently targets
-Android API 36, supports API 24 and newer, and builds arm64 native artifacts.
+Android API 36, supports API 26 and newer (`minSdk = 26` in `app/build.gradle.kts`),
+and builds arm64 native artifacts.
 
 ## 3. State ownership
 
@@ -433,8 +434,8 @@ The native layer exposes:
 - the F-Droid PRoot bridge.
 
 The F-Droid sandbox runs commands with concurrent output collection and an actual
-wall-clock timeout. The shared glob matcher is implemented without API-26-only
-`java.nio.file` APIs so the API 24 minimum remains real.
+wall-clock timeout. The shared glob matcher avoids API-26-only
+`java.nio.file` APIs, so it stays compatible with the API 26 minimum.
 
 Remote shell supports Conch HTTP jobs and direct SSH with host-key trust. Conch requests use signed ephemeral-key/AES-GCM application-layer protection when an API key is configured; blank-key servers receive plain JSON and rely on HTTPS for transport confidentiality. Commands start as durable jobs: foreground execution is a bounded wait
 on the same process, and a timeout returns its job id instead of killing or replaying it. Separate

@@ -26,6 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.common.OpenAiServiceTierControlPanel
 import com.newoether.agora.ui.common.PersistedSliderFeedbackGate
 import com.newoether.agora.ui.common.ThinkingControlPanel
@@ -87,7 +89,7 @@ fun SettingsGenerationPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                 onLevelChange = { viewModel.settings.setThinkingLevel(it) },
                                 onBudgetEnabledChange = { viewModel.settings.setThinkingBudgetEnabled(it) },
                                 onBudgetTokensChange = { viewModel.settings.setThinkingBudgetTokens(it) },
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                                modifier = Modifier.padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Lg),
                                 showHeader = false,
                                 providerName = null,
                                 animateSections = true
@@ -255,7 +257,7 @@ private fun GenParamSlider(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp)
+            .padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Lg)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -263,11 +265,11 @@ private fun GenParamSlider(
         ) {
             Icon(
                 Icons.Default.Tune,
-                contentDescription = null,
+                contentDescription = label,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp)
+                modifier = Modifier.padding(top = AgoraSpacing.Xxs)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -280,7 +282,7 @@ private fun GenParamSlider(
                         Text(
                             text = stringResource(R.string.gen_not_specified),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint),
                             modifier = Modifier.padding(end = 6.dp)
                         )
                     } else {
@@ -294,7 +296,7 @@ private fun GenParamSlider(
                         Text(
                             text = stringResource(R.string.gen_reset),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = AgoraAlpha.Hint),
                             modifier = Modifier.clickable {
                                 if (value == null) {
                                     sliderGate.settleWithoutWrite(null, defaultSliderPos)
@@ -311,7 +313,7 @@ private fun GenParamSlider(
                     text = desc,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = AgoraSpacing.Xs)
                 )
                 Slider(
                     value = sliderPos,
@@ -332,7 +334,7 @@ private fun GenParamSlider(
                     },
                     valueRange = valueRange,
                     steps = steps,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = AgoraSpacing.Sm)
                 )
             }
         }
@@ -371,7 +373,7 @@ private fun GenParamSlider(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp)
+            .padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Lg)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -379,11 +381,11 @@ private fun GenParamSlider(
         ) {
             Icon(
                 Icons.Default.Tune,
-                contentDescription = null,
+                contentDescription = label,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp)
+                modifier = Modifier.padding(top = AgoraSpacing.Xxs)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -396,7 +398,7 @@ private fun GenParamSlider(
                         Text(
                             text = stringResource(R.string.gen_not_specified),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint),
                             modifier = Modifier.padding(end = 6.dp)
                         )
                     } else {
@@ -410,7 +412,7 @@ private fun GenParamSlider(
                         Text(
                             text = stringResource(R.string.gen_reset),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = AgoraAlpha.Hint),
                             modifier = Modifier.clickable {
                                 if (value == null) {
                                     sliderGate.settleWithoutWrite(null, defaultIndex.toFloat())
@@ -427,7 +429,7 @@ private fun GenParamSlider(
                     text = desc,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = AgoraSpacing.Xs)
                 )
                 Slider(
                     value = sliderPos,
@@ -452,7 +454,7 @@ private fun GenParamSlider(
                     },
                     valueRange = 0f..(presets.size - 1).toFloat(),
                     steps = presets.size - 2,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = AgoraSpacing.Sm)
                 )
             }
         }

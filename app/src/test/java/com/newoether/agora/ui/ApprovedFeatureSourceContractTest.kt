@@ -39,7 +39,7 @@ class ApprovedFeatureSourceContractTest {
         assertTrue(listOf("stringResource(R.string.loading_label)", "stringResource(R.string.tool_state_failed)",
             "viewModel.ragManager.retryCacheRow(model.id)").all(settings::contains))
         assertTrue(settings.split("animationSpec = tween(250)").size - 1 >= 2)
-        assertTrue(settings.contains("modifier = Modifier.widthIn(min = 76.dp)"))
+        assertTrue(settings.contains("modifier = Modifier.size(cacheActionSize)"))
         assertTrue(settings.contains("modifier = Modifier.size(24.dp)"))
         assertTrue(settings.contains("viewModel.ragManager.setAutoCacheEnabled"))
         assertTrue(listOf("cachingProgress", "val allCached =", "embeddingCacheActionState(")
@@ -48,7 +48,7 @@ class ApprovedFeatureSourceContractTest {
         assertTrue(dao.contains("GROUP BY e.modelId"))
         assertTrue(dao.contains("getEmbeddingCountsByModels"))
         assertTrue(entities.contains("Index(value = [\"modelId\"])"))
-        assertTrue(database.contains("CURRENT_VERSION = 31"))
+        assertTrue(database.contains("CURRENT_VERSION = 34"))
         assertTrue(database.contains("MIGRATION_23_24"))
         assertTrue(database.contains("MIGRATION_24_25"))
         assertTrue(database.contains("MIGRATION_25_26"))
@@ -56,6 +56,9 @@ class ApprovedFeatureSourceContractTest {
         assertTrue(database.contains("MIGRATION_27_28"))
         assertTrue(database.contains("MIGRATION_28_29"))
         assertTrue(database.contains("MIGRATION_29_30"))
+        assertTrue(database.contains("MIGRATION_31_32"))
+        assertTrue(database.contains("MIGRATION_32_33"))
+        assertTrue(database.contains("MIGRATION_33_34"))
     }
 
     @Test

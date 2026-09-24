@@ -12,7 +12,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,12 +23,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.newoether.agora.R
+import com.newoether.agora.ui.chat.audio.FullFlowAudioController
 import com.newoether.agora.ui.chat.message.LiteralHtmlMarkdownBlock
 import com.newoether.agora.ui.chat.message.SearchHighlightedMarkdownHeading
 import com.newoether.agora.ui.chat.message.SearchHighlightedMarkdownTable
@@ -54,7 +58,17 @@ fun TextFileViewer(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BackHandler(enabled = true) { onClose() }
+    val context = LocalContext.current
+    val docId = remember(fileName) { "doc_$fileName" }
+    val isPlayingThisDoc = FullFlowAudioController.currentlyPlayingDocumentId == docId &&
+        FullFlowAudioController.isSpeakingDocument
+
+    val handleClose = {
+        FullFlowAudioController.stopDocument()
+        onClose()
+    }
+
+    BackHandler(enabled = true) { handleClose() }
 
     val isMarkdown = remember(fileName) { isMarkdownFile(fileName) }
     var showOverlay by remember { mutableStateOf(true) }
@@ -243,9 +257,9 @@ fun TextFileViewer(
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     Surface(
-                        shape = RoundedCornerShape(50),
+                        shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier.shadow(8.dp, RoundedCornerShape(50)).widthIn(max = 320.dp)
+                        modifier = Modifier.shadow(8.dp, CircleShape).widthIn(max = 320.dp)
                     ) {
                         Text(
                             fileName,
@@ -258,9 +272,29 @@ fun TextFileViewer(
                         )
                     }
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(10.dp))
                 Surface(
-                    onClick = onClose,
+                    onClick = {
+                        if (isPlayingThisDoc) {
+                            FullFlowAudioController.stopDocument()
+                        } else {
+                            FullFlowAudioController.playDocument(context, docId, content)
+                        }
+                    },
+                    shape = CircleShape,
+                    color = if (isPlayingThisDoc) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
+                    modifier = Modifier.size(48.dp).shadow(8.dp, CircleShape)
+                ) {
+                    Icon(
+                        if (isPlayingThisDoc) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                        contentDescription = if (isPlayingThisDoc) "Arrêter la lecture" else "Lire à haute voix",
+                        tint = if (isPlayingThisDoc) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(48.dp).padding(12.dp)
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
+                Surface(
+                    onClick = handleClose,
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     modifier = Modifier.size(48.dp).shadow(8.dp, CircleShape)

@@ -17,9 +17,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+        maven { url = java.net.URI("https://jitpack.io") }
     }
 }
 
-rootProject.name = "Agora"
+rootProject.name = "FullFlow"
 include(":app")

@@ -6,7 +6,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Ignore
 
+@Ignore("Font files are no longer bundled in APK to reduce size")
 class MiOutfitVariableFontSourceContractTest {
     @Test
     fun `minimum Android version supports variable font weights`() {

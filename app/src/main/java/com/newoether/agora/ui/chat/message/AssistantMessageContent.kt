@@ -1,3 +1,4 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 package com.newoether.agora.ui.chat.message
 
 import androidx.compose.animation.AnimatedVisibility
@@ -12,19 +13,31 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraSpacing
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -40,7 +53,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.newoether.agora.R
 import com.newoether.agora.util.noOpBringIntoView
@@ -255,7 +270,24 @@ internal fun AssistantMessageContent(
     onLayoutMutationStarted: (String) -> Unit,
     onLayoutMutationSettled: (String) -> Unit,
     setThoughtBlockHeight: (Int) -> Unit,
+    userPrompt: String? = null,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val app = remember(context) { context.applicationContext as? com.newoether.agora.AgoraApplication }
+    val container = remember(app) { app?.requireContainer() }
+    val settingsRepo = remember(container) { container?.settingsRepository }
+    val editorialEnabled = settingsRepo?.editorialEnabled?.collectAsState()?.value ?: false
+
+    // Chime only on the true→false streaming transition (never on first composition,
+    // otherwise every already-completed message would ring when opening a conversation).
+    var wasStreaming by remember(message.id) { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(isStreaming) {
+        if (wasStreaming == true && !isStreaming && message.text.isNotBlank()) {
+            com.newoether.agora.ui.common.SoundIdentity.playSound(context, com.newoether.agora.ui.common.SoundIdentity.SoundType.RECEIVE)
+        }
+        wasStreaming = isStreaming
+    }
+
     @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
     val haptics = LocalAgoraHaptics.current
@@ -406,8 +438,12 @@ internal fun AssistantMessageContent(
             // the off-main Markdown parser.
             val renderedText = message.text
 
-            Column {
-                val isError = message.status == MessageStatus.ERROR || message.participant == Participant.ERROR
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
+            ) {
+                    val isError = message.status == MessageStatus.ERROR || message.participant == Participant.ERROR
 
                 // Only zero out thought height when legacy thought block is not shown
                 if (message.segments != null || message.thoughts.isNullOrBlank()) {
@@ -638,12 +674,29 @@ internal fun AssistantMessageContent(
                                 CompositionLocalProvider(
                                     LocalSearchHighlightSpec provides searchHighlight,
                                 ) {
-                                if (compactAnswerAppearanceKey != null) {
-                                    AnimatedTimelineBlockAppearance(
-                                        animationKey = compactAnswerAppearanceKey,
-                                        appearanceRegistry = segmentAppearanceRegistry,
-                                        isStreaming = isStreaming,
-                                    ) {
+                                if (editorialEnabled && presentedContent.isNotBlank() && !presentedIsStreaming) {
+                                    com.newoether.agora.studio.editorial.EditorialMessageContent(
+                                        text = presentedContent,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                } else {
+                                    if (compactAnswerAppearanceKey != null) {
+                                        AnimatedTimelineBlockAppearance(
+                                            animationKey = compactAnswerAppearanceKey,
+                                            appearanceRegistry = segmentAppearanceRegistry,
+                                            isStreaming = isStreaming,
+                                        ) {
+                                            StreamingMarkdownMessage(
+                                                content = presentedContent,
+                                                isStreaming = presentedIsStreaming,
+                                                renderContext = renderContext,
+                                                modifier = Modifier.fillMaxWidth(),
+                                                selectionEnabled = !presentedIsStreaming,
+                                                textDeltas = answerTextDeltas,
+                                                fadeTracker = answerFadeTracker,
+                                            )
+                                        }
+                                    } else {
                                         StreamingMarkdownMessage(
                                             content = presentedContent,
                                             isStreaming = presentedIsStreaming,
@@ -654,16 +707,6 @@ internal fun AssistantMessageContent(
                                             fadeTracker = answerFadeTracker,
                                         )
                                     }
-                                } else {
-                                    StreamingMarkdownMessage(
-                                        content = presentedContent,
-                                        isStreaming = presentedIsStreaming,
-                                        renderContext = renderContext,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        selectionEnabled = !presentedIsStreaming,
-                                        textDeltas = answerTextDeltas,
-                                        fadeTracker = answerFadeTracker,
-                                    )
                                 }
                             }
                         }
@@ -711,20 +754,100 @@ internal fun AssistantMessageContent(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         genImages.forEachIndexed { idx, path ->
-                            coil.compose.AsyncImage(
-                                model = path,
-                                contentDescription = null,
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .combinedClickable(
-                                        onClick = { onMediaClick(genImages, idx) },
-                                        onLongClick = { haptics.longPress() },
-                                        hapticFeedbackEnabled = false,
-                                    )
-                            )
+                            val isVideo = path.endsWith(".mp4", true) ||
+                                path.endsWith(".webm", true) ||
+                                path.endsWith(".mov", true)
+                            if (isVideo) {
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(170.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable { onMediaClick(genImages, idx) },
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = androidx.compose.ui.graphics.Color(0xFF0F172A),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, androidx.compose.ui.graphics.Color(0xFFA78BFA).copy(alpha = 0.4f)),
+                                    shadowElevation = 8.dp
+                                ) {
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(
+                                                    androidx.compose.ui.graphics.Brush.linearGradient(
+                                                        listOf(
+                                                            androidx.compose.ui.graphics.Color(0xFF0F172A),
+                                                            androidx.compose.ui.graphics.Color(0xFF1E1B4B),
+                                                            androidx.compose.ui.graphics.Color(0xFF0F172A)
+                                                        )
+                                                    )
+                                                )
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .size(56.dp)
+                                                .align(Alignment.Center)
+                                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                                .background(androidx.compose.ui.graphics.Color(0xFFA78BFA)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.PlayArrow,
+                                                contentDescription = "Lire la vidéo",
+                                                tint = androidx.compose.ui.graphics.Color(0xFF0F172A),
+                                                modifier = Modifier.size(32.dp)
+                                            )
+                                        }
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .align(Alignment.BottomCenter)
+                                                .background(
+                                                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                                                        0f to androidx.compose.ui.graphics.Color.Transparent,
+                                                        1f to androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.8f)
+                                                    )
+                                                )
+                                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "Vidéo générée",
+                                                fontSize = 12.sp,
+                                                color = androidx.compose.ui.graphics.Color(0xFFE2E8F0),
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f)
+                                            ) {
+                                                Text(
+                                                    text = "Lire la vidéo",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = androidx.compose.ui.graphics.Color.White,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                coil.compose.AsyncImage(
+                                    model = path,
+                                    contentDescription = null,
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .combinedClickable(
+                                            onClick = { onMediaClick(genImages, idx) },
+                                            onLongClick = { haptics.longPress() },
+                                        )
+                                )
+                            }
                         }
                     }
                 }
@@ -790,14 +913,86 @@ internal fun AssistantMessageContent(
                                 },
                                 enabled = actionAvailability.informationEnabled,
                                 modifier = Modifier
-                                    .size(32.dp)
+                                    .size(36.dp)
                                     .graphicsLayer { alpha = informationActionsAlpha },
                             ) {
                                 Icon(
                                     Icons.Default.ContentCopy,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
+                                    contentDescription = stringResource(R.string.copy),
+                                    modifier = Modifier.size(17.dp),
                                     tint = enabledActionTint,
+                                )
+                            }
+                        }
+                        val textToSpeak = actionCopyText ?: message.text
+                        if (!textToSpeak.isNullOrBlank()) {
+                            val context = androidx.compose.ui.platform.LocalContext.current
+                            val isCurrentSpeaking = com.newoether.agora.ui.chat.audio.FullFlowAudioController.currentlySpeakingMessageId == message.id &&
+                                com.newoether.agora.ui.chat.audio.FullFlowAudioController.isSpeakingInChat
+                            IconButton(
+                                onClick = {
+                                    if (isCurrentSpeaking) {
+                                        com.newoether.agora.ui.chat.audio.FullFlowAudioController.stopInChat()
+                                    } else {
+                                        com.newoether.agora.ui.chat.audio.FullFlowAudioController.playInChat(context, message.id, textToSpeak)
+                                    }
+                                },
+                                enabled = actionAvailability.informationEnabled,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .graphicsLayer { alpha = informationActionsAlpha },
+                            ) {
+                                Icon(
+                                    if (isCurrentSpeaking) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = if (isCurrentSpeaking) "Arrêter la lecture" else "Lire à voix haute",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = if (isCurrentSpeaking) MaterialTheme.colorScheme.primary else enabledActionTint,
+                                )
+                            }
+                        }
+                        if (!actionCopyText.isNullOrBlank()) {
+                            IconButton(
+                                onClick = {
+                                    com.newoether.agora.wand.WandMessageTrigger.request(actionCopyText)
+                                    haptics.confirm()
+                                },
+                                enabled = actionAvailability.informationEnabled,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .graphicsLayer { alpha = informationActionsAlpha },
+                            ) {
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = "Reformuler avec la baguette magique",
+                                    modifier = Modifier.size(17.dp),
+                                    tint = if (actionAvailability.informationEnabled) {
+                                        androidx.compose.ui.graphics.Color(0xFFA78BFA)
+                                    } else {
+                                        enabledActionTint
+                                    },
+                                )
+                            }
+                        }
+                        if (!actionCopyText.isNullOrBlank()) {
+                            IconButton(
+                                onClick = {
+                                    com.newoether.agora.tool.BrainSaveController.requestSave(actionCopyText)
+                                    haptics.confirm()
+                                },
+                                enabled = actionAvailability.informationEnabled,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .graphicsLayer { alpha = informationActionsAlpha },
+                            ) {
+                                Icon(
+                                    Icons.Default.Bookmark,
+                                    contentDescription = "Sauver dans le Second Cerveau",
+                                    modifier = Modifier.size(17.dp),
+                                    tint = if (actionAvailability.informationEnabled) {
+                                        MaterialTheme.colorScheme.tertiary
+                                    } else {
+                                        enabledActionTint
+                                    },
                                 )
                             }
                         }
@@ -810,12 +1005,12 @@ internal fun AssistantMessageContent(
                             },
                             enabled = actionAvailability.terminalEnabled,
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .graphicsLayer { alpha = terminalActionsAlpha },
                         ) {
                             Icon(
                                 Icons.Default.Refresh,
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.retry),
                                 modifier = Modifier.size(19.dp),
                                 tint = terminalActionTint,
                             )
@@ -824,11 +1019,11 @@ internal fun AssistantMessageContent(
                             onClick = onFork,
                             enabled = actionAvailability.terminalEnabled,
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .graphicsLayer { alpha = terminalActionsAlpha },
                         ) {
                             Icon(
-                                Icons.Default.CallSplit,
+                                Icons.AutoMirrored.Filled.CallSplit,
                                 contentDescription = stringResource(R.string.conversation_fork_from_here),
                                 modifier = Modifier.size(18.dp),
                                 tint = terminalActionTint,
@@ -838,13 +1033,13 @@ internal fun AssistantMessageContent(
                             onClick = onShare,
                             enabled = actionAvailability.terminalEnabled,
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .graphicsLayer { alpha = terminalActionsAlpha },
                         ) {
                             Icon(
                                 Icons.Default.Share,
                                 contentDescription = stringResource(R.string.conversation_share),
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(17.dp),
                                 tint = terminalActionTint,
                             )
                         }
@@ -855,7 +1050,7 @@ internal fun AssistantMessageContent(
                                 },
                                 enabled = actionAvailability.informationEnabled,
                                 modifier = Modifier
-                                    .size(32.dp)
+                                    .size(36.dp)
                                     .graphicsLayer { alpha = informationActionsAlpha },
                             ) {
                                 Icon(
@@ -910,13 +1105,13 @@ internal fun AssistantMessageContent(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .padding(start = 8.dp)
+                                    .padding(start = AgoraSpacing.Xs)
                                     .graphicsLayer { alpha = terminalActionsAlpha }
-                                    .clip(RoundedCornerShape(100))
+                                    .clip(CircleShape)
                                     .background(
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = AgoraAlpha.Hint)
                                     )
-                                    .padding(horizontal = 4.dp),
+                                    .padding(horizontal = AgoraSpacing.Xs, vertical = AgoraSpacing.Xxs),
                             ) {
                                 IconButton(
                                     onClick = { onSwitchBranch(-1) },
@@ -924,49 +1119,189 @@ internal fun AssistantMessageContent(
                                         actionAvailability.terminalEnabled &&
                                             branchIndex > 0 &&
                                             isEditingAllowed,
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(36.dp),
                                 ) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                                        contentDescription = null,
+                                        contentDescription = "Branche précédente",
                                         modifier = Modifier.size(16.dp),
                                     )
                                 }
                                 Text(
                                     "${branchIndex + 1} / $totalBranches",
                                     style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = AgoraSpacing.Xxs),
                                 )
                                 IconButton(
                                     onClick = { onSwitchBranch(1) },
                                     enabled = actionAvailability.terminalEnabled &&
                                         branchIndex < totalBranches - 1 &&
                                         isEditingAllowed,
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(36.dp),
                                 ) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = null,
+                                        contentDescription = "Branche suivante",
                                         modifier = Modifier.size(16.dp),
                                     )
                                 }
                             }
                         }
                     }
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(44.dp).padding(top = 12.dp),
-                        contentAlignment = Alignment.CenterStart,
-                    ) {
-                        if (answerTailVisible) GenerationActivityDot()
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            content = actionContent,
+                    if (message.participant == Participant.MODEL && !isStreaming && !generationActive && !message.text.isNullOrBlank() && message.status != MessageStatus.ERROR) {
+                        FollowUpSuggestionsSection(
+                            messageText = message.text,
+                            userPrompt = userPrompt,
+                            modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)
                         )
+                    }
+
+                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 36.dp) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 4.dp)
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (answerTailVisible) {
+                                GenerationActivityDot()
+                                Spacer(Modifier.width(4.dp))
+                            }
+                            actionContent()
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
+
+@Composable
+private fun FollowUpSuggestionsSection(
+    messageText: String,
+    userPrompt: String? = null,
+    modifier: Modifier = Modifier,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val memorySnippet = remember {
+        try {
+            val app = context.applicationContext as? com.newoether.agora.AgoraApplication
+            app?.requireContainer()?.memoryManager?.getActiveMemory()?.take(300)
+        } catch (_: Exception) {
+            null
+        }
+    }
+    val suggestions = remember(messageText, userPrompt, memorySnippet) {
+        FollowUpSuggestionsGenerator.generate(messageText, userPrompt, memorySnippet)
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 2.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = androidx.compose.ui.graphics.Color(0xFFA78BFA),
+                modifier = Modifier.size(13.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Pistes de réflexion suggérées",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+            )
+        }
+
+        suggestions.forEach { suggestion ->
+            Surface(
+                onClick = {
+                    FollowUpSuggestionController.selectSuggestion(suggestion.text)
+                },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                border = androidx.compose.foundation.BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = when (suggestion.type) {
+                            FollowUpType.DEEP_DIVE -> androidx.compose.ui.graphics.Color(0xFF38BDF8).copy(alpha = 0.15f)
+                            FollowUpType.EXPANSION -> androidx.compose.ui.graphics.Color(0xFF34A853).copy(alpha = 0.15f)
+                            FollowUpType.TRANSVERSAL -> androidx.compose.ui.graphics.Color(0xFFA78BFA).copy(alpha = 0.15f)
+                        },
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text(
+                    text = suggestion.type.badge,
+                    fontSize = 11.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                            color = when (suggestion.type) {
+                                FollowUpType.DEEP_DIVE -> androidx.compose.ui.graphics.Color(0xFF38BDF8)
+                                FollowUpType.EXPANSION -> androidx.compose.ui.graphics.Color(0xFF34A853)
+                                FollowUpType.TRANSVERSAL -> androidx.compose.ui.graphics.Color(0xFFA78BFA)
+                            },
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    Text(
+                        text = suggestion.text,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                        IconButton(
+                            onClick = { FollowUpSuggestionController.sendSuggestion(suggestion.text) },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = "Envoyer directement cette suggestion",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                }
+            }
+        }
+
+        // « Transformer en livrable » : convertit la réponse en mindmap, dashboard,
+        // image, podcast ou vidéo — toutes formes réellement rendues par FullFlow.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 2.dp)
+        ) {
+            Text(
+                text = "Transformer en :",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.padding(end = 6.dp)
+            )
+            com.newoether.agora.ui.chat.DeliverableFormatChips(
+                selected = null,
+                onSelect = { format ->
+                    FollowUpSuggestionController.selectSuggestion(format.conversionPrompt())
+                },
+            )
+        }
+    }
 }
+

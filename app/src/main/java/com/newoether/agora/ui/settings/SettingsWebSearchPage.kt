@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.text.input.TextFieldState
+import com.newoether.agora.ui.components.OutlinedTextField
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +37,8 @@ fun SettingsWebSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
     val webSearchApiKeys by viewModel.settings.webSearchApiKeys.collectAsState()
     val webSearchNumResults by viewModel.settings.webSearchNumResults.collectAsState()
     val webSearchBaseUrl by viewModel.settings.webSearchBaseUrl.collectAsState()
+    val webSearchFallbackEnabled by viewModel.settings.webSearchFallbackEnabled.collectAsState()
+    val webSearchMode by viewModel.settings.webSearchMode.collectAsState()
     var showProviderDialog by remember { mutableStateOf(false) }
     var apiKeyText by remember(webSearchProvider) { mutableStateOf(webSearchApiKeys[webSearchProvider] ?: "") }
     LaunchedEffect(webSearchProvider) { apiKeyText = webSearchApiKeys[webSearchProvider] ?: "" }
@@ -80,6 +83,7 @@ fun SettingsWebSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             "kagi" -> stringResource(R.string.web_search_kagi)
                                             "serper" -> stringResource(R.string.web_search_serper)
                                             "tavily" -> stringResource(R.string.web_search_tavily)
+                                            "exa" -> stringResource(R.string.web_search_exa)
                                             "duckduckgo" -> stringResource(R.string.web_search_duckduckgo)
                                             else -> stringResource(R.string.web_search_brave)
                                         }
@@ -108,6 +112,7 @@ fun SettingsWebSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                                         "kagi" -> R.string.web_search_kagi_key
                                                         "serper" -> R.string.web_search_serper_key
                                                         "tavily" -> R.string.web_search_tavily_key
+                                                        "exa" -> R.string.web_search_exa_key
                                                         else -> R.string.web_search_brave_key
                                                     }
                                                 ),
@@ -124,6 +129,7 @@ fun SettingsWebSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                                                     "kagi" -> R.string.web_search_kagi_key_hint
                                                                     "serper" -> R.string.web_search_serper_key_hint
                                                                     "tavily" -> R.string.web_search_tavily_key_hint
+                                                                    "exa" -> R.string.web_search_exa_key_hint
                                                                     else -> R.string.web_search_brave_key_hint
                                                                 }
                                                             )
@@ -187,11 +193,67 @@ fun SettingsWebSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                 }
                             }
                         }
+
+                        add {
+                            SettingsItem(
+                                headlineContent = { Text(stringResource(R.string.web_search_fallback)) },
+                                supportingContent = { Text(stringResource(R.string.web_search_fallback_desc)) },
+                                leadingContent = { Icon(Icons.Default.Cloud, null, tint = MaterialTheme.colorScheme.primary) },
+                                trailingContent = {
+                                    Switch(checked = webSearchFallbackEnabled, onCheckedChange = { viewModel.settings.setWebSearchFallbackEnabled(it) })
+                                },
+                                modifier = Modifier.clickable { viewModel.settings.setWebSearchFallbackEnabled(!webSearchFallbackEnabled) }
+                            )
+                        }
                     }
                 })
 
                 if (webSearchEnabled) {
                     SettingsGroup(title = stringResource(R.string.web_search_advanced), items = buildList {
+                        add {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Icon(Icons.Default.Tune, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 2.dp))
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            stringResource(R.string.web_search_mode),
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            stringResource(R.string.web_search_mode_desc),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            listOf(
+                                                "quick" to R.string.web_search_mode_quick,
+                                                "adaptive" to R.string.web_search_mode_adaptive,
+                                                "deep" to R.string.web_search_mode_deep,
+                                            ).forEach { (modeKey, labelRes) ->
+                                                FilterChip(
+                                                    selected = webSearchMode == modeKey,
+                                                    onClick = { viewModel.settings.setWebSearchMode(modeKey) },
+                                                    label = { Text(stringResource(labelRes)) },
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         add {
                             Column(
                                 modifier = Modifier
@@ -271,6 +333,7 @@ fun SettingsWebSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         "kagi" to R.string.web_search_kagi,
                         "serper" to R.string.web_search_serper,
                         "tavily" to R.string.web_search_tavily,
+                        "exa" to R.string.web_search_exa,
                         "searxng" to R.string.web_search_searxng
                     )
                     providers.forEach { (key, labelRes) ->
@@ -284,6 +347,7 @@ fun SettingsWebSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                             "kagi" -> R.string.web_search_kagi_desc
                                             "serper" -> R.string.web_search_serper_desc
                                             "tavily" -> R.string.web_search_tavily_desc
+                                            "exa" -> R.string.web_search_exa_desc
                                             "searxng" -> R.string.web_search_searxng_desc
                                             "duckduckgo" -> R.string.web_search_duckduckgo_desc
                                             else -> R.string.web_search_brave_desc

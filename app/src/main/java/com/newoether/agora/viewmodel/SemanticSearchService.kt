@@ -33,6 +33,8 @@ internal class SemanticSearchService(
             webSearchProvider = settings.webSearchProvider.value,
             webSearchNumResults = settings.webSearchNumResults.value,
             webSearchBaseUrl = settings.webSearchBaseUrl.value,
+            webSearchFallbackEnabled = settings.webSearchFallbackEnabled.value,
+            webSearchMode = settings.webSearchMode.value,
         )
         return search(query, limit, context)
     }

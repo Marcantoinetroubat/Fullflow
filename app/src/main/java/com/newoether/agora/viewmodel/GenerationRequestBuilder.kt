@@ -68,6 +68,8 @@ class GenerationRequestBuilder(
     private val pendingConversationSettings: StateFlow<ConversationSettings?>,
     // resolveProviderKey uses this callback to emit snackbar messages.
     private val onSnackbar: (String) -> Unit,
+    /** Single-shot Magic Wand whitelist consumed per generation (default: none). */
+    private val wandConnectionsConsumer: () -> Set<String> = { emptySet() },
 ) {
     data class ProviderKey(val providerName: String, val apiKey: String)
 
@@ -393,7 +395,46 @@ class GenerationRequestBuilder(
             applyLowContextMode &&
                 providerName == Constants.PROVIDER_LOCAL &&
                 effectiveSettings.lowContextModeEnabled == true
-        val imageGenModel = settings.imageGenModel.value
+        val rawImageGenModel = settings.imageGenModel.value
+        val effectiveImageGenModel = if (!rawImageGenModel.isNullOrBlank() && rawImageGenModel.contains(":")) {
+            rawImageGenModel
+        } else {
+            val googleKey = settings.resolveActiveKey(Constants.PROVIDER_GOOGLE)
+                ?: settings.resolveActiveKey("google")
+                ?: settings.apiKeys.value.firstOrNull { it.provider.equals("google", ignoreCase = true) }?.key
+                ?: com.newoether.agora.api.genmedia.GenMediaKeys.resolveApiKeyBlocking(appContext, null)
+            if (googleKey.isNotBlank()) {
+                "google:imagen-3.0-generate-002"
+            } else {
+                val openAiKey = settings.resolveActiveKey(Constants.PROVIDER_OPENAI)
+                    ?: settings.resolveActiveKey("openai")
+                    ?: settings.apiKeys.value.firstOrNull { it.provider.equals("openai", ignoreCase = true) }?.key
+                if (!openAiKey.isNullOrBlank()) {
+                    "openai:dall-e-3"
+                } else {
+                    rawImageGenModel
+                }
+            }
+        }
+        val isImageGenCapable = effectiveImageGenModel?.contains(":") == true
+        val effectiveImageGenEnabled = (settings.imageGenEnabled.value || settings.imageGenModel.value == null) && isImageGenCapable
+
+        val rawVideoGenModel = settings.videoGenModel.value
+        val effectiveVideoGenModel = if (!rawVideoGenModel.isNullOrBlank() && rawVideoGenModel.contains(":")) {
+            rawVideoGenModel
+        } else {
+            val googleKey = settings.resolveActiveKey(Constants.PROVIDER_GOOGLE)
+                ?: settings.resolveActiveKey("google")
+                ?: com.newoether.agora.api.genmedia.GenMediaKeys.resolveApiKeyBlocking(appContext, null)
+            if (googleKey.isNotBlank()) {
+                "google:veo-3.1-fast-generate-preview"
+            } else {
+                rawVideoGenModel
+            }
+        }
+        val isVideoGenCapable = effectiveVideoGenModel?.contains(":") == true
+        val effectiveVideoGenEnabled = (settings.videoGenEnabled.value || settings.videoGenModel.value == null) && isVideoGenCapable
+
         val transcriptionModel = settings.imageTranscriptionModel.value
         val configuredSkillReadAccess = settings.accessSkills.value
         val skillReadAccess = configuredSkillReadAccess && includeSkillCatalog
@@ -458,11 +499,18 @@ class GenerationRequestBuilder(
             webSearchProvider = settings.webSearchProvider.value,
             webSearchNumResults = settings.webSearchNumResults.value,
             webSearchBaseUrl = settings.webSearchBaseUrl.value,
-            imageGenEnabled = settings.imageGenEnabled.value && imageGenModel?.contains(":") == true,
-            imageGenApiKey = resolveImageGenApiKey(imageGenModel),
-            imageGenBaseUrl = resolveImageGenBaseUrl(imageGenModel),
-            imageGenModel = resolveImageGenModelId(imageGenModel),
+            webSearchFallbackEnabled = settings.webSearchFallbackEnabled.value,
+            webSearchMode = settings.webSearchMode.value,
+            imageGenEnabled = effectiveImageGenEnabled,
+            imageGenApiKey = resolveImageGenApiKey(effectiveImageGenModel).ifBlank {
+                if (effectiveImageGenModel?.startsWith("google", ignoreCase = true) == true) {
+                    com.newoether.agora.api.genmedia.GenMediaKeys.resolveApiKeyBlocking(appContext, null)
+                } else ""
+            },
+            imageGenBaseUrl = resolveImageGenBaseUrl(effectiveImageGenModel),
+            imageGenModel = resolveImageGenModelId(effectiveImageGenModel),
             imageGenSize = settings.imageGenSize.value,
+            videoGenEnabled = effectiveVideoGenEnabled,
             automationToolsEnabled = settings.automationToolsEnabled.value,
             shellEnabled = effectiveSettings.shellEnabled ?: settings.shellEnabled.value,
             shellDevices = settings.shellDevices.value,
@@ -479,7 +527,9 @@ class GenerationRequestBuilder(
             transcriptionProviderName = resolveTranscriptionProviderName(transcriptionModel),
             transcriptionModelId = resolveTranscriptionModelId(transcriptionModel),
             transcriptionApiKey = resolveTranscriptionApiKey(transcriptionModel),
-            transcriptionBaseUrl = resolveTranscriptionBaseUrl(transcriptionModel)
+            transcriptionBaseUrl = resolveTranscriptionBaseUrl(transcriptionModel),
+            // Magic Wand session whitelist (single-shot, declared at preview confirmation).
+            wandConnections = wandConnectionsConsumer(),
         )
         return Pair(config, genCtx)
     }

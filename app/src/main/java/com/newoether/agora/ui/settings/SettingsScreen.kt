@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Extension
@@ -37,6 +39,9 @@ import androidx.compose.ui.unit.sp
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.newoether.agora.R
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraRadii
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.settings.datacontrol.SettingsDataControlPage
 import com.newoether.agora.viewmodel.ChatViewModel
 
@@ -49,7 +54,7 @@ val LocalSettingsGroupSpacing = staticCompositionLocalOf { false }
 @Composable
 fun SettingsGroupColumn(
     modifier: Modifier = Modifier,
-    spacing: Dp = 24.dp,
+    spacing: Dp = AgoraSpacing.Xxl,
     content: @Composable ColumnScope.() -> Unit
 ) {
     CompositionLocalProvider(LocalSettingsGroupSpacing provides true) {
@@ -65,7 +70,7 @@ fun SettingsGroupColumn(
 fun SettingsGroup(
     title: String,
     modifier: Modifier = Modifier,
-    bottomPadding: androidx.compose.ui.unit.Dp = 24.dp,
+    bottomPadding: androidx.compose.ui.unit.Dp = AgoraSpacing.Xxl,
     items: List<@Composable () -> Unit>
 ) {
     val effectiveBottom = if (LocalSettingsGroupSpacing.current) 0.dp else bottomPadding
@@ -74,25 +79,25 @@ fun SettingsGroup(
             text = title,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            modifier = Modifier.padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Md)
         )
         Column(modifier = Modifier.fillMaxWidth()) {
             items.forEachIndexed { index, item ->
                 if (index > 0) {
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(AgoraSpacing.Xxs))
                 }
                 val isFirst = index == 0
                 val isLast = index == items.lastIndex
                 val shape = when {
-                    items.size == 1 -> RoundedCornerShape(24.dp)
-                    isFirst -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-                    isLast -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-                    else -> RoundedCornerShape(5.dp)
+                    items.size == 1 -> RoundedCornerShape(5.dp)__
+                    isFirst -> RoundedCornerShape(5.dp)__
+                    isLast -> RoundedCornerShape(5.dp)__
+                    else -> RoundedCornerShape(5.dp)__
                 }
                 Surface(
                     shape = shape,
                     color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 1.dp,
+                    tonalElevation = 1.dp__,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     item()
@@ -109,15 +114,15 @@ fun SettingsIconContent(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Lg)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp),
+                modifier = Modifier.padding(top = AgoraSpacing.Xxs),
             )
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(AgoraSpacing.Lg))
             Column(modifier = Modifier.weight(1f), content = content)
         }
     }
@@ -130,15 +135,15 @@ fun SettingsItem(
     supportingContent: (@Composable () -> Unit)? = null,
     leadingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
-    leadingSpacing: Dp = 16.dp,
-    endPadding: Dp = 16.dp,
+    leadingSpacing: Dp = AgoraSpacing.Lg,
+    endPadding: Dp = AgoraSpacing.Lg,
 ) {
-    val verticalPadding = if (supportingContent == null) 12.dp else 16.dp
+    val verticalPadding = if (supportingContent == null) AgoraSpacing.Md else AgoraSpacing.Lg
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = 16.dp,
+                start = AgoraSpacing.Lg,
                 end = endPadding,
                 top = verticalPadding,
                 bottom = verticalPadding,
@@ -171,7 +176,7 @@ fun SettingsItem(
             }
         }
         if (trailingContent != null) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
             trailingContent()
         }
     }
@@ -193,24 +198,28 @@ fun SettingsAddItem(
     val contentColor = if (enabled) {
         MaterialTheme.colorScheme.primary
     } else {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        MaterialTheme.colorScheme.onSurface.copy(alpha = AgoraAlpha.Disabled)
     }
     Box(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .clickable(
+                enabled = enabled,
+                role = androidx.compose.ui.semantics.Role.Button,
+                onClick = onClick,
+            )
+            .padding(horizontal = AgoraSpacing.Lg),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(AgoraSpacing.Xl),
                 tint = contentColor,
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
             Text(
                 text = label,
                 color = contentColor,
@@ -236,17 +245,24 @@ private data class SettingsGroupData(
 private val baseSettingsGroups = listOf(
     SettingsGroupData(titleRes = R.string.settings_group_services, items = listOf(
         SettingsCategory("provider", R.string.settings_provider, R.string.settings_provider_desc, Icons.Default.Cloud),
-        SettingsCategory("models", R.string.settings_models, R.string.settings_models_desc, Icons.Default.Chat),
+        SettingsCategory("models", R.string.settings_models, R.string.settings_models_desc, Icons.AutoMirrored.Filled.Chat),
+        SettingsCategory("workspace", R.string.settings_workspace, R.string.settings_workspace_desc, Icons.Default.Work),
     )),
     SettingsGroupData(titleRes = R.string.settings_group_responses, items = listOf(
         SettingsCategory("prompts", R.string.settings_prompts, R.string.settings_prompts_desc, Icons.Default.Psychology),
         SettingsCategory("generation", R.string.settings_generation, R.string.settings_generation_desc, Icons.Default.Tune),
         SettingsCategory("context", R.string.context_title, R.string.context_desc, Icons.Default.Memory),
         SettingsCategory("titlegen", R.string.settings_title_gen, R.string.settings_title_gen_desc, Icons.Default.Edit),
+        SettingsCategory("proactive", R.string.settings_proactive, R.string.settings_proactive_desc, Icons.Default.TipsAndUpdates),
     )),
     SettingsGroupData(titleRes = R.string.settings_group_multimodal, items = listOf(
         SettingsCategory("transcription", R.string.settings_transcription, R.string.settings_transcription_desc, Icons.Default.ImageSearch),
         SettingsCategory("imagegen", R.string.settings_image_gen, R.string.settings_image_gen_desc, Icons.Default.AddPhotoAlternate),
+        SettingsCategory("videogen", R.string.settings_video_gen, R.string.settings_video_gen_desc, Icons.Default.Videocam),
+        SettingsCategory("backgroundgen", R.string.settings_background_gen, R.string.settings_background_gen_desc, Icons.Default.Wallpaper),
+        SettingsCategory("podcastgen", R.string.settings_podcast_gen, R.string.settings_podcast_gen_desc, Icons.Default.GraphicEq),
+        SettingsCategory("podcastdist", R.string.settings_podcast_dist, R.string.settings_podcast_dist_desc, Icons.Default.RssFeed),
+        SettingsCategory("editorial", R.string.settings_editorial, R.string.settings_editorial_desc, Icons.Default.Book),
     )),
     SettingsGroupData(titleRes = R.string.settings_group_tools, items = listOf(
         SettingsCategory("websearch", R.string.settings_web_search, R.string.settings_web_search_desc, Icons.Default.Language),
@@ -265,7 +281,11 @@ private val baseSettingsGroups = listOf(
     )),
     SettingsGroupData(titleRes = R.string.settings_group_memory_data, items = listOf(
         SettingsCategory("memory", R.string.settings_memory, R.string.settings_memory_desc, Icons.Default.Description),
+        SettingsCategory("secondbrain", R.string.settings_second_brain, R.string.settings_second_brain_desc, Icons.Default.Psychology),
+        SettingsCategory("personas", R.string.settings_personas, R.string.settings_personas_desc, Icons.Default.Person),
+        SettingsCategory("agents", R.string.settings_agents, R.string.settings_agents_desc, Icons.Default.SmartToy),
         SettingsCategory("skills", R.string.settings_skills, R.string.settings_skills_desc, Icons.Default.Extension),
+        SettingsCategory("wand", R.string.settings_wand, R.string.settings_wand_desc, Icons.Default.AutoAwesome),
         SettingsCategory("datacontrol", R.string.settings_data_control, R.string.settings_data_control_desc, Icons.Default.Storage),
     )),
     SettingsGroupData(titleRes = R.string.settings_group_appearance_language, items = listOf(
@@ -324,20 +344,39 @@ fun SettingsScreen(viewModel: ChatViewModel, onBack: () -> Unit) {
                 "provider" -> SettingsProviderPage(viewModel, onBack = { selectedCategory = null })
                 "prompts" -> SettingsPromptsPage(viewModel, onBack = { selectedCategory = null })
                 "models" -> SettingsModelsPage(viewModel, onBack = { selectedCategory = null })
+                "workspace" -> SettingsWorkspacePage(viewModel, onBack = { selectedCategory = null })
                 "generation" -> SettingsGenerationPage(viewModel, onBack = { selectedCategory = null })
                 "context" -> SettingsContextPage(viewModel, onBack = { selectedCategory = null })
                 "websearch" -> SettingsWebSearchPage(viewModel, onBack = { selectedCategory = null })
                 "imagegen" -> SettingsImageGenPage(viewModel, onBack = { selectedCategory = null })
+                "videogen" -> SettingsVideoGenPage(viewModel, onBack = { selectedCategory = null })
+                "backgroundgen" -> SettingsBackgroundGenPage(viewModel, onBack = { selectedCategory = null })
+                "podcastgen" -> SettingsPodcastGenPage(viewModel, onBack = { selectedCategory = null })
+                "editorial" -> SettingsEditorialPage(viewModel, onBack = { selectedCategory = null })
+                "agents" -> SettingsAgentsPage(viewModel, onBack = { selectedCategory = null })
+                "podcastdist" -> SettingsPodcastDistributionPage(viewModel, onBack = { selectedCategory = null })
                 "shell" -> SettingsShellPage(viewModel, onBack = { selectedCategory = null })
                 "mcp" -> SettingsMcpPage(viewModel, onBack = { selectedCategory = null })
                 "automation" -> SettingsAutomationPage(viewModel, onBack = { selectedCategory = null })
                 "proxy" -> SettingsProxyPage(viewModel, onBack = { selectedCategory = null })
                 "language" -> SettingsLanguagePage(viewModel, onBack = { selectedCategory = null })
                 "titlegen" -> SettingsTitleGenPage(viewModel, onBack = { selectedCategory = null })
+                "proactive" -> SettingsProactivePage(viewModel, onBack = { selectedCategory = null })
                 "transcription" -> SettingsTranscriptionPage(viewModel, onBack = { selectedCategory = null })
                 "search" -> SettingsSearchPage(viewModel, onBack = { selectedCategory = null })
                 "memory" -> SettingsMemoryPage(viewModel, onBack = { selectedCategory = null })
+                "secondbrain" -> {
+                    // Open the Second Brain screen directly (full-screen dialog)
+                    selectedCategory = null
+                    com.newoether.agora.ui.chat.live.SecondBrainController.open()
+                }
+                "personas" -> SettingsPersonasPage(viewModel, onBack = { selectedCategory = null })
                 "skills" -> SettingsSkillsPage(viewModel, onBack = { selectedCategory = null })
+                "wand" -> SettingsWandPage(
+                    viewModel = viewModel,
+                    onBack = { selectedCategory = null },
+                    onOpenMcp = { selectedCategory = "mcp" },
+                )
                 "datacontrol" -> SettingsDataControlPage(viewModel, onBack = { selectedCategory = null })
                 "appearance" -> SettingsAppearancePage(viewModel, onBack = { selectedCategory = null })
                 "developer" -> SettingsDeveloperPage(
@@ -362,25 +401,18 @@ fun SettingsScreen(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         text = stringResource(group.titleRes),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                                        modifier = Modifier.padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Md)
                                     )
                                 }
                                 group.items.forEachIndexed { index, cat ->
                                     if (index > 0) {
-                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Spacer(modifier = Modifier.height(AgoraSpacing.Xxs))
                                     }
-                                    val isFirst = index == 0
-                                    val isLast = index == group.items.lastIndex
-                                    val shape = when {
-                                        group.items.size == 1 -> RoundedCornerShape(24.dp)
-                                        isFirst -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-                                        isLast -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-                                        else -> RoundedCornerShape(5.dp)
-                                    }
+                                    val shape = AgoraRadii.stackedShape(index, group.items.size)
                                     Surface(
                                         shape = shape,
                                         color = MaterialTheme.colorScheme.surface,
-                                        tonalElevation = 1.dp,
+                                        tonalElevation = 1.dp__,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clip(shape)
@@ -389,7 +421,7 @@ fun SettingsScreen(viewModel: ChatViewModel, onBack: () -> Unit) {
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                                                .padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Lg),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             if (cat.iconRes != null) {
@@ -397,17 +429,17 @@ fun SettingsScreen(viewModel: ChatViewModel, onBack: () -> Unit) {
                                                     painter = painterResource(cat.iconRes),
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp),
+                                                    modifier = Modifier.size(AgoraSpacing.Xxl),
                                                 )
                                             } else {
                                                 Icon(
                                                     imageVector = checkNotNull(cat.icon),
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp),
+                                                    modifier = Modifier.size(AgoraSpacing.Xxl),
                                                 )
                                             }
-                                            Spacer(modifier = Modifier.width(16.dp))
+                                            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
                                                     text = stringResource(cat.titleRes),
@@ -425,7 +457,7 @@ fun SettingsScreen(viewModel: ChatViewModel, onBack: () -> Unit) {
                                 }
                             }
                             if (groupIndex < settingsGroups.size - 1) {
-                                Spacer(modifier = Modifier.height(20.dp))
+                                Spacer(modifier = Modifier.height(AgoraSpacing.Xl))
                             }
                         }
                     }

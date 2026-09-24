@@ -144,7 +144,7 @@ class SettingsRepository(
         DEFAULT_CONTEXT_COMPACT_THRESHOLD_PERCENT,
     )
     val codeExecutionEnabled: StateFlow<Boolean> = hot(settingsManager.codeExecutionEnabled, false)
-    val googleSearchEnabled: StateFlow<Boolean> = hot(settingsManager.googleSearchEnabled, false)
+    val googleSearchEnabled: StateFlow<Boolean> = hot(settingsManager.googleSearchEnabled, true)
     val thinkingEnabled: StateFlow<Boolean> = hot(settingsManager.thinkingEnabled, true)
     val thinkingLevel: StateFlow<String> = hot(settingsManager.thinkingLevel, "medium")
     val thinkingBudgetEnabled: StateFlow<Boolean> = hot(settingsManager.thinkingBudgetEnabled, false)
@@ -189,9 +189,44 @@ class SettingsRepository(
     val webSearchApiKeys: StateFlow<Map<String, String>> = hot(settingsManager.webSearchApiKeys, emptyMap())
     val webSearchNumResults: StateFlow<Int> = hot(settingsManager.webSearchNumResults, 5)
     val webSearchBaseUrl: StateFlow<String> = hot(settingsManager.webSearchBaseUrl, "")
+    val webSearchFallbackEnabled: StateFlow<Boolean> = hot(settingsManager.webSearchFallbackEnabled, true)
+    val webSearchMode: StateFlow<String> = hot(settingsManager.webSearchMode, "adaptive")
     val imageGenEnabled: StateFlow<Boolean> = hot(settingsManager.imageGenEnabled, false)
     val imageGenModel: StateFlow<String?> = hot(settingsManager.imageGenModel, null)
     val imageGenSize: StateFlow<String> = hot(settingsManager.imageGenSize, "1024x1024")
+    val videoGenEnabled: StateFlow<Boolean> = hot(settingsManager.videoGenEnabled, false)
+    val videoGenModel: StateFlow<String?> = hot(settingsManager.videoGenModel, null)
+    val videoGenPrompt: StateFlow<String> = hot(settingsManager.videoGenPrompt, "")
+    val videoGenNegativePrompt: StateFlow<String> = hot(settingsManager.videoGenNegativePrompt, "blurry, jittery motion, distorted faces, watermark")
+    val videoGenAspectRatio: StateFlow<String> = hot(settingsManager.videoGenAspectRatio, "16:9")
+    val videoGenDuration: StateFlow<Int> = hot(settingsManager.videoGenDuration, 5)
+    val videoGenResolution: StateFlow<String> = hot(settingsManager.videoGenResolution, "1080p")
+    val backgroundGenModel: StateFlow<String?> = hot(settingsManager.backgroundGenModel, null)
+    val backgroundGenPrompt: StateFlow<String> = hot(settingsManager.backgroundGenPrompt, "")
+    val backgroundGenOpacity: StateFlow<Float> = hot(settingsManager.backgroundGenOpacity, 0.35f)
+    val podcastGenModel: StateFlow<String?> = hot(settingsManager.podcastGenModel, null)
+    val podcastGenPrompt: StateFlow<String> = hot(settingsManager.podcastGenPrompt, "")
+    val podcastGenTtsEngine: StateFlow<String> = hot(settingsManager.podcastGenTtsEngine, "GEMINI_CLOUD")
+    val podcastGenTtsModel: StateFlow<String?> = hot(settingsManager.podcastGenTtsModel, null)
+    val podcastGenVoice: StateFlow<String> = hot(settingsManager.podcastGenVoice, "Kore")
+
+    val ttsProviderModel: StateFlow<String?> = hot(settingsManager.ttsProviderModel, null)
+    val ttsVoice: StateFlow<String> = hot(settingsManager.ttsVoice, "Kore")
+    val ttsSpeed: StateFlow<Float> = hot(settingsManager.ttsSpeed, 1.0f)
+    val ttsEngineMode: StateFlow<String> = hot(settingsManager.ttsEngineMode, "SYSTEM")
+
+    val proactiveIntelligenceEnabled: StateFlow<Boolean> = hot(settingsManager.proactiveIntelligenceEnabled, true)
+    val proactiveIntelligenceProvider: StateFlow<String?> = hot(settingsManager.proactiveIntelligenceProvider, null)
+    val proactiveIntelligenceModel: StateFlow<String?> = hot(settingsManager.proactiveIntelligenceModel, null)
+    val proactiveIntelligencePrompt: StateFlow<String> = hot(settingsManager.proactiveIntelligencePrompt, com.newoether.agora.data.BuiltInPrompts.PROACTIVE_INTELLIGENCE_SYSTEM)
+
+    // ── Editorial Magazine ────────────────────────────────────
+    val editorialEnabled: StateFlow<Boolean> = hot(settingsManager.editorialEnabled, false)
+    val editorialImageModel: StateFlow<String?> = hot(settingsManager.editorialImageModel, null)
+    val editorialImagePrompt: StateFlow<String> = hot(settingsManager.editorialImagePrompt, "Illustration éditoriale de style magazine premium, artistique, détaillée, sans texte.")
+    val editorialImageFrequency: StateFlow<Int> = hot(settingsManager.editorialImageFrequency, 2)
+    val editorialSerifEnabled: StateFlow<Boolean> = hot(settingsManager.editorialSerifEnabled, true)
+
     val showDocumentationFab: StateFlow<Boolean> = hot(settingsManager.showDocumentationFab, true)
     val developerOptionsEnabled: StateFlow<Boolean> =
         hot(settingsManager.developerOptionsEnabled, false)
@@ -230,6 +265,7 @@ class SettingsRepository(
     val stickToBottom: StateFlow<Boolean> = hot(settingsManager.stickToBottom, true)
     val parseInlineDollarMath: StateFlow<Boolean> = hot(settingsManager.parseInlineDollarMath, false)
     val hapticsEnabled: StateFlow<Boolean> = hot(settingsManager.hapticsEnabled, true)
+    val soundsEnabled: StateFlow<Boolean> = hot(settingsManager.soundsEnabled, true)
     val detailedTokenUsage: StateFlow<Boolean> =
         hot(settingsManager.detailedTokenUsage, false)
     val toolCallDisplayMode: StateFlow<String> = hot(settingsManager.toolCallDisplayMode, ToolCallDisplayModes.DEFAULT)
@@ -651,9 +687,44 @@ class SettingsRepository(
     fun setWebSearchApiKey(provider: String, apiKey: String) = scope.launch { settingsManager.saveWebSearchApiKey(provider, apiKey) }
     fun setWebSearchNumResults(n: Int) = scope.launch { settingsManager.saveWebSearchNumResults(n) }
     fun setWebSearchBaseUrl(url: String) = scope.launch { settingsManager.saveWebSearchBaseUrl(url) }
+    fun setWebSearchFallbackEnabled(enabled: Boolean) = scope.launch { settingsManager.saveWebSearchFallbackEnabled(enabled) }
+    fun setWebSearchMode(mode: String) = scope.launch { settingsManager.saveWebSearchMode(mode) }
     fun setImageGenEnabled(enabled: Boolean) = scope.launch { settingsManager.saveImageGenEnabled(enabled) }
     fun setImageGenModel(model: String?) = scope.launch { settingsManager.saveImageGenModel(model) }
     fun setImageGenSize(size: String) = scope.launch { settingsManager.saveImageGenSize(size) }
+    fun setVideoGenEnabled(enabled: Boolean) = scope.launch { settingsManager.saveVideoGenEnabled(enabled) }
+    fun setVideoGenModel(model: String?) = scope.launch { settingsManager.saveVideoGenModel(model) }
+    fun setVideoGenPrompt(prompt: String) = scope.launch { settingsManager.saveVideoGenPrompt(prompt) }
+    fun setVideoGenNegativePrompt(negPrompt: String) = scope.launch { settingsManager.saveVideoGenNegativePrompt(negPrompt) }
+    fun setVideoGenAspectRatio(ratio: String) = scope.launch { settingsManager.saveVideoGenAspectRatio(ratio) }
+    fun setVideoGenDuration(duration: Int) = scope.launch { settingsManager.saveVideoGenDuration(duration) }
+    fun setVideoGenResolution(res: String) = scope.launch { settingsManager.saveVideoGenResolution(res) }
+    fun setBackgroundGenModel(model: String?) = scope.launch { settingsManager.saveBackgroundGenModel(model) }
+    fun setBackgroundGenPrompt(prompt: String) = scope.launch { settingsManager.saveBackgroundGenPrompt(prompt) }
+    fun setBackgroundGenOpacity(opacity: Float) = scope.launch { settingsManager.saveBackgroundGenOpacity(opacity) }
+    fun setPodcastGenModel(model: String?) = scope.launch { settingsManager.savePodcastGenModel(model) }
+    fun setPodcastGenPrompt(prompt: String) = scope.launch { settingsManager.savePodcastGenPrompt(prompt) }
+    fun setPodcastGenTtsEngine(engine: String) = scope.launch { settingsManager.savePodcastGenTtsEngine(engine) }
+    fun setPodcastGenTtsModel(model: String?) = scope.launch { settingsManager.savePodcastGenTtsModel(model) }
+    fun setPodcastGenVoice(voice: String) = scope.launch { settingsManager.savePodcastGenVoice(voice) }
+
+    fun setTtsProviderModel(model: String?) = scope.launch { settingsManager.saveTtsProviderModel(model) }
+    fun setTtsVoice(voice: String) = scope.launch { settingsManager.saveTtsVoice(voice) }
+    fun setTtsSpeed(speed: Float) = scope.launch { settingsManager.saveTtsSpeed(speed) }
+    fun setTtsEngineMode(mode: String) = scope.launch { settingsManager.saveTtsEngineMode(mode) }
+
+    fun setProactiveIntelligenceEnabled(enabled: Boolean) = scope.launch { settingsManager.saveProactiveIntelligenceEnabled(enabled) }
+    fun setProactiveIntelligenceProvider(provider: String?) = scope.launch { settingsManager.saveProactiveIntelligenceProvider(provider) }
+    fun setProactiveIntelligenceModel(model: String?) = scope.launch { settingsManager.saveProactiveIntelligenceModel(model) }
+    fun setProactiveIntelligencePrompt(prompt: String) = scope.launch { settingsManager.saveProactiveIntelligencePrompt(prompt) }
+
+    // ── Editorial Magazine ────────────────────────────────────
+    fun setEditorialEnabled(enabled: Boolean) = scope.launch { settingsManager.saveEditorialEnabled(enabled) }
+    fun setEditorialImageModel(model: String?) = scope.launch { settingsManager.saveEditorialImageModel(model) }
+    fun setEditorialImagePrompt(prompt: String) = scope.launch { settingsManager.saveEditorialImagePrompt(prompt) }
+    fun setEditorialImageFrequency(freq: Int) = scope.launch { settingsManager.saveEditorialImageFrequency(freq) }
+    fun setEditorialSerifEnabled(enabled: Boolean) = scope.launch { settingsManager.saveEditorialSerifEnabled(enabled) }
+
     fun setShowDocumentationFab(enabled: Boolean) = scope.launch { settingsManager.saveShowDocumentationFab(enabled) }
     fun setDeveloperOptionsEnabled(enabled: Boolean) =
         scope.launch { settingsManager.saveDeveloperOptionsEnabled(enabled) }
@@ -700,6 +771,7 @@ class SettingsRepository(
     fun setParseInlineDollarMath(enabled: Boolean) =
         scope.launch { settingsManager.saveParseInlineDollarMath(enabled) }
     fun setHapticsEnabled(enabled: Boolean) = scope.launch { settingsManager.saveHapticsEnabled(enabled) }
+    fun setSoundsEnabled(enabled: Boolean) = scope.launch { settingsManager.saveSoundsEnabled(enabled) }
     fun setDetailedTokenUsage(enabled: Boolean) =
         scope.launch { settingsManager.saveDetailedTokenUsage(enabled) }
     fun setToolCallDisplayMode(mode: String) = scope.launch { settingsManager.saveToolCallDisplayMode(mode) }
@@ -731,8 +803,27 @@ class SettingsRepository(
 
     // ── Derived lookups ─────────────────────────────────────────
     /** Resolves the currently-active cleartext API key for [provider], or `null`. */
-    fun resolveActiveKey(provider: String): String? =
-        apiKeys.value.find { it.id == activeApiKeyIds.value[provider] }?.key
+    fun resolveActiveKey(provider: String): String? {
+        val activeIds = activeApiKeyIds.value
+        val activeId = activeIds[provider]
+            ?: activeIds.entries.firstOrNull { it.key.equals(provider, ignoreCase = true) }?.value
+        if (activeId != null) {
+            val key = apiKeys.value.firstOrNull { it.id == activeId }?.key
+            if (!key.isNullOrBlank()) return key.trim()
+        }
+        val matchingKey = apiKeys.value.firstOrNull {
+            it.provider.equals(provider, ignoreCase = true)
+        }?.key
+        if (!matchingKey.isNullOrBlank()) return matchingKey.trim()
+
+        if (provider.equals("gemini", ignoreCase = true) || provider.equals("google", ignoreCase = true)) {
+            val gKey = apiKeys.value.firstOrNull {
+                it.provider.equals("google", ignoreCase = true) || it.provider.equals("gemini", ignoreCase = true)
+            }?.key
+            if (!gKey.isNullOrBlank()) return gKey.trim()
+        }
+        return null
+    }
 
     /**
      * Like [resolveActiveKey] but awaits the on-disk DataStore values instead of
@@ -745,7 +836,24 @@ class SettingsRepository(
     suspend fun awaitActiveKey(provider: String): String? {
         val activeIds = settingsManager.activeApiKeyIds.first()
         val keys = settingsManager.apiKeys.first()
-        return keys.find { it.id == activeIds[provider] }?.key
+        val activeId = activeIds[provider]
+            ?: activeIds.entries.firstOrNull { it.key.equals(provider, ignoreCase = true) }?.value
+        if (activeId != null) {
+            val key = keys.firstOrNull { it.id == activeId }?.key
+            if (!key.isNullOrBlank()) return key.trim()
+        }
+        val matchingKey = keys.firstOrNull {
+            it.provider.equals(provider, ignoreCase = true)
+        }?.key
+        if (!matchingKey.isNullOrBlank()) return matchingKey.trim()
+
+        if (provider.equals("gemini", ignoreCase = true) || provider.equals("google", ignoreCase = true)) {
+            val gKey = keys.firstOrNull {
+                it.provider.equals("google", ignoreCase = true) || it.provider.equals("gemini", ignoreCase = true)
+            }?.key
+            if (!gKey.isNullOrBlank()) return gKey.trim()
+        }
+        return null
     }
 
     // ── Suspending DataStore access ───────────────────────────
@@ -804,6 +912,7 @@ class SettingsRepository(
     suspend fun saveAutoBackupDirectory(path: String) = settingsManager.saveAutoBackupDirectory(path)
     suspend fun saveAutoDeleteEnabled(enabled: Boolean) = settingsManager.saveAutoDeleteEnabled(enabled)
     suspend fun saveAutoDeletePeriodHours(hours: Int) = settingsManager.saveAutoDeletePeriodHours(hours)
+    fun setOnboardingCompleted(completed: Boolean) = scope.launch { settingsManager.saveOnboardingCompleted(completed) }
 
     fun stableProviderReference(reference: String): String {
         val normalized = reference.trim()

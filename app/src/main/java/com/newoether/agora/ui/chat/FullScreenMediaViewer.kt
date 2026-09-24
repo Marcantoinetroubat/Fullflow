@@ -69,7 +69,9 @@ private fun hasVideoExtension(url: String): Boolean {
         normalized.endsWith(".webm") ||
         normalized.endsWith(".mov") ||
         normalized.endsWith(".avi") ||
-        normalized.contains("vid_original_")
+        normalized.contains("vid_original_") ||
+        normalized.contains("/videos/") ||
+        normalized.contains("video_generation")
 }
 
 @Composable
@@ -202,9 +204,9 @@ private fun PdfPager(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    shape = RoundedCornerShape(50),
+                    shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier.shadow(8.dp, RoundedCornerShape(50))
+                    modifier = Modifier.shadow(8.dp, CircleShape)
                 ) {
                     Text(
                         "${pagerState.currentPage + 1} / ${pdfPages.size}",
@@ -237,7 +239,7 @@ private fun PdfPager(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(50))
+                        .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceContainer)
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
@@ -336,9 +338,9 @@ private fun MediaPager(
             ) {
                 if (urls.size > 1) {
                     Surface(
-                        shape = RoundedCornerShape(50),
+                        shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
-                        modifier = Modifier.shadow(8.dp, RoundedCornerShape(50))
+                        modifier = Modifier.shadow(8.dp, CircleShape)
                     ) {
                         Text(
                             "${pagerState.currentPage + 1} / ${urls.size}",

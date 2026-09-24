@@ -18,22 +18,7 @@ val MonoFamily = FontFamily(
     Font(R.font.jetbrains_mono_bolditalic, FontWeight.Bold, FontStyle.Italic),
 )
 
-@OptIn(ExperimentalTextApi::class)
-private fun miOutfitFont(weight: FontWeight) = Font(
-    resId = R.font.mioutfit_variable,
-    weight = weight,
-    variationSettings = FontVariation.Settings(
-        FontVariation.weight(weight.weight),
-    ),
-)
-
-val OutfitFamily = FontFamily(
-    miOutfitFont(FontWeight.ExtraLight),
-    miOutfitFont(FontWeight.Light),
-    miOutfitFont(FontWeight.Normal),
-    miOutfitFont(FontWeight.Medium),
-    miOutfitFont(FontWeight.Bold),
-)
+val OutfitFamily = FontFamily.Default
 
 // Geometric (modular) type scale: every distinct size is a term of a geometric
 // sequence anchored at body = 16sp with common ratio r = 1.2 (minor third).
@@ -146,6 +131,59 @@ val Typography = Typography(
         letterSpacing = 0.5.sp
     )
 )
+
+/**
+ * Styles éditoriaux M3 Expressive — ajoutent l'emphase (Bold) à l'échelle
+ * géométrique existante. Équivalent direct de Grok/Atomic : hiérarchie forte,
+ * attention sur les actions clés, sans casser la lecture. Tous héritent
+ * [chatFontFamily] pour rester cohérents avec les préférences utilisateur.
+ *
+ * Ces styles sont exposés en plus de la rampe [Typography] ; les écrans
+ * historiques conservent [Typography], les nouveaux/hero moments utilisent
+ * [EditorialType].
+ */
+object EditorialType {
+    /** Titre héro d'écran (premier écran d'accueil, état vide principal). */
+    val heroTitle get() = TextStyle(
+        fontFamily = chatFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 33.sp,
+        lineHeight = 40.sp,
+        letterSpacing = (-0.25).sp,
+    )
+    /** Section label accentué (lettre libre). */
+    val sectionLabel get() = TextStyle(
+        fontFamily = chatFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.1.sp,
+    )
+    /** Sous-titre héro (sous heroTitle). */
+    val heroSubtitle get() = TextStyle(
+        fontFamily = chatFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.15.sp,
+    )
+    /** Libellé d'action principale (CTA, bouton texte d'accent). */
+    val ctaLabel get() = TextStyle(
+        fontFamily = chatFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp,
+    )
+    /** Accent numérique / badge premium (badge statut, compte). */
+    val premiumNumeric get() = TextStyle(
+        fontFamily = chatFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp,
+    )
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatType — single source of truth for the chat surface's typographic scale.

@@ -17,10 +17,14 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.layout.ContentScale
+import java.io.File
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -29,6 +33,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -44,6 +49,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.newoether.agora.R
 import com.newoether.agora.TopLevelPresentation
 import com.newoether.agora.api.DebugProvider
@@ -59,6 +65,8 @@ import com.newoether.agora.ui.components.TypewriterMode
 import com.newoether.agora.ui.components.TypewriterText
 import com.newoether.agora.ui.common.LocalAgoraHaptics
 import com.newoether.agora.ui.common.rememberAgoraHaptics
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.FullLiveBridge
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
 import com.newoether.agora.model.StableMessageList
 import com.newoether.agora.model.StableModelAliases
@@ -109,6 +117,11 @@ fun ChatApp(
     val compactThresholdPercent by
         viewModel.settings.contextCompactThresholdPercent.collectAsState()
     val manualCompactDialogVisible = rememberSaveable { mutableStateOf(false) }
+    var showGeminiLiveDialog by rememberSaveable { mutableStateOf(false) }
+    var showGenMailDialog by rememberSaveable { mutableStateOf(false) }
+    val genMailFromController by com.newoether.agora.ui.chat.fullflow.GenMailController.showGenMail.collectAsState()
+    var showPlusSheet by rememberSaveable { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
     val dialogState = rememberChatAppDialogState(manualCompactDialogVisible)
     val queuedSends by viewModel.queuedSends.collectAsState()
     val isStopping by viewModel.isStopping.collectAsState()
@@ -127,16 +140,10 @@ fun ChatApp(
     val debugModelEnabled by viewModel.settings.debugModelEnabled.collectAsState()
     val modelAliases by viewModel.settings.modelAliases.collectAsState()
     val modelProviderNames by viewModel.settings.modelProviderNames.collectAsState()
-    val chatEnabledModels = validChatModels(
-        enabledModels,
-        developerOptionsEnabled,
-        debugModelEnabled,
-    )
+    val chatEnabledModels = validChatModels(enabledModels, developerOptionsEnabled, debugModelEnabled)
     val chatModelAliases = if (DebugProvider.MODEL_ID in chatEnabledModels) {
         modelAliases + (DebugProvider.MODEL_ID to DebugProvider.PROVIDER_NAME)
-    } else {
-        modelAliases
-    }
+    } else modelAliases
     val thoughtExpandedStates = remember(currentConversationId) { mutableStateMapOf<String, Boolean>() }
     val isNewChatMode by viewModel.isNewChatMode.collectAsState()
     val newChatEntryId by viewModel.newChatEntryId.collectAsState()
@@ -204,10 +211,7 @@ fun ChatApp(
     val isExpandAnimating = composerSpacerAnimation.isRunning
     val outerSpacerHeightPx = composerSpacerAnimation.outerHeightPx
 
-    val windowSize = LocalWindowInfo.current.containerSize
-    val windowHeightDp = with(density) {
-        windowSize.height.toDp().value.coerceAtLeast(1f)
-    }
+    val windowHeightDp = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.toFloat().coerceAtLeast(1f)
     var bottomBarHeightPx by rememberSaveable { mutableFloatStateOf(0f) }
     val bottomBarHeight = with(density) { bottomBarHeightPx.toDp() }
     var drawerProgress by remember { mutableFloatStateOf(0f) }
@@ -272,6 +276,7 @@ fun ChatApp(
     val conversationSearchMatches = conversationInteraction.searchMatches
     val textFieldState = rememberSaveable(saver = androidx.compose.foundation.text.input.TextFieldState.Saver) { androidx.compose.foundation.text.input.TextFieldState() }
     val sandboxEnabled by viewModel.settings.sandboxEnabled.collectAsState()
+    val conversationSettings by viewModel.settings.conversationSettings.collectAsState()
     val composer = com.newoether.agora.ui.chat.bottombar.rememberChatComposerState(
         sandboxEnabled,
         viewModel.isSandboxFlavor,
@@ -405,7 +410,8 @@ fun ChatApp(
                 containerColor = Color.Transparent,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 topBar = {
-                    ChatTopBar(
+                    if (!isNewChatMode || conversationSearchActive) {
+                        ChatTopBar(
                         isNewChatMode = isNewChatMode,
                         conversations = displayConversations,
                         currentConversationId = currentConversationId,
@@ -455,6 +461,12 @@ fun ChatApp(
                             focusManager.clearFocus()
                             conversationInteraction.activateShareSelection()
                         },
+                        onExportConversation = { showExportDialog = true },
+                        onLaunchGeminiLive = { showGeminiLiveDialog = true },
+                        hasBackground = currentConversationId?.let { conversationSettings[it]?.backgroundImageUri }?.let { File(it).exists() } == true,
+                        onGenerateBackground = { currentConversationId?.let { viewModel.generateBackground(it) } },
+                        onRemoveBackground = { currentConversationId?.let { viewModel.removeBackground(it) } },
+                        onGeneratePodcast = { currentConversationId?.let { viewModel.generatePodcast(it) } },
                         onNewChat = {
                             if (!isNewChatMode) {
                                 isExpanded = false
@@ -463,6 +475,7 @@ fun ChatApp(
                             }
                         },
                     )
+                    }
                 }
             ) { padding ->
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -526,7 +539,29 @@ fun ChatApp(
                                             currentConversationId,
                             )
                             Box(modifier = Modifier.fillMaxSize()) {
-                            MessageList(
+                                val currentBgPath = currentConversationId?.let { conversationSettings[it]?.backgroundImageUri }
+                                if (!currentBgPath.isNullOrBlank()) {
+                                    val bgFile = remember(currentBgPath) { File(currentBgPath) }
+                                    if (bgFile.exists()) {
+                                        val bgOpacity by viewModel.settings.backgroundGenOpacity.collectAsState()
+                                        coil.compose.AsyncImage(
+                                            model = bgFile,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(
+                                                    MaterialTheme.colorScheme.background.copy(
+                                                        alpha = (1f - bgOpacity).coerceIn(0.25f, 0.95f)
+                                                    )
+                                                )
+                                        )
+                                    }
+                                }
+                                MessageList(
                                 messages = StableMessageList(renderMessagesState.value),
                                 authoritativeMessages = StableMessageList(displayMessagesState.value),
                                 allMessages = StableMessageList(allMessagesState.value),
@@ -644,38 +679,158 @@ fun ChatApp(
                             )
                             }
                         } else if (targetShowLaunch) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(bottom = bottomBarHeight),
-                                contentAlignment = Alignment.TopCenter
-                            ) {
+                            var activeTab by rememberSaveable { mutableStateOf(FullFlowTab.HOME) }
+
+                            Scaffold(
+                                containerColor = Color.Transparent,
+                                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                                bottomBar = {
+                                    NavigationBar(
+                                        containerColor = Color(0xFF0F1216),
+                                        tonalElevation = 0.dp,
+                                        modifier = Modifier.height(72.dp)
+                                    ) {
+                                        NavigationBarItem(
+                                            selected = activeTab == FullFlowTab.HOME,
+                                            onClick = { activeTab = FullFlowTab.HOME },
+                                            icon = { Icon(Icons.Default.Home, contentDescription = "Accueil") },
+                                            label = { Text("Accueil", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                                            colors = NavigationBarItemDefaults.colors(
+                                                selectedIconColor = FullLiveBridge.Cyan,
+                                                selectedTextColor = FullLiveBridge.Cyan,
+                                                unselectedIconColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                unselectedTextColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                indicatorColor = Color.Transparent
+                                            )
+                                        )
+                                        NavigationBarItem(
+                                            selected = activeTab == FullFlowTab.RECHERCHE,
+                                            onClick = { activeTab = FullFlowTab.RECHERCHE },
+                                            icon = { Icon(Icons.Default.Search, contentDescription = "Recherche") },
+                                            label = { Text("Recherche", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                                            colors = NavigationBarItemDefaults.colors(
+                                                selectedIconColor = FullLiveBridge.Cyan,
+                                                selectedTextColor = FullLiveBridge.Cyan,
+                                                unselectedIconColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                unselectedTextColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                indicatorColor = Color.Transparent
+                                            )
+                                        )
+                                        NavigationBarItem(
+                                            selected = activeTab == FullFlowTab.PODCAST,
+                                            onClick = { activeTab = FullFlowTab.PODCAST },
+                                            icon = { Icon(Icons.Default.GraphicEq, contentDescription = "Audio") },
+                                            label = { Text("Audio", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                                            colors = NavigationBarItemDefaults.colors(
+                                                selectedIconColor = FullLiveBridge.Cyan,
+                                                selectedTextColor = FullLiveBridge.Cyan,
+                                                unselectedIconColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                unselectedTextColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                indicatorColor = Color.Transparent
+                                            )
+                                        )
+                                        NavigationBarItem(
+                                            selected = activeTab == FullFlowTab.IMAGE,
+                                            onClick = { activeTab = FullFlowTab.IMAGE },
+                                            icon = { Icon(Icons.Default.Image, contentDescription = "Images") },
+                                            label = { Text("Images", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                                            colors = NavigationBarItemDefaults.colors(
+                                                selectedIconColor = FullLiveBridge.Cyan,
+                                                selectedTextColor = FullLiveBridge.Cyan,
+                                                unselectedIconColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                unselectedTextColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                indicatorColor = Color.Transparent
+                                            )
+                                        )
+                                        NavigationBarItem(
+                                            selected = activeTab == FullFlowTab.VIDEO,
+                                            onClick = { activeTab = FullFlowTab.VIDEO },
+                                            icon = { Icon(Icons.Default.Videocam, contentDescription = "Vidéos") },
+                                            label = { Text("Vidéos", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                                            colors = NavigationBarItemDefaults.colors(
+                                                selectedIconColor = FullLiveBridge.Cyan,
+                                                selectedTextColor = FullLiveBridge.Cyan,
+                                                unselectedIconColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                unselectedTextColor = Color.White.copy(alpha = AgoraAlpha.Hint),
+                                                indicatorColor = Color.Transparent
+                                            )
+                                        )
+                                    }
+                                }
+                            ) { innerPadding ->
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .verticalScroll(rememberScrollState()),
-                                    contentAlignment = Alignment.TopCenter
+                                        .padding(bottom = innerPadding.calculateBottomPadding())
                                 ) {
-                                    val welcomeText = stringResource(R.string.welcome_to_agora)
-                                    val availableWelcomeHeight =
-                                        windowHeightDp +
-                                            topBarH.value / 2f -
-                                            bottomBarHeight.value
-                                    val welcomeTopPadding =
-                                        (availableWelcomeHeight / 2f).coerceAtLeast(0f).dp
-                                    val welcomeModifier =
-                                        Modifier.padding(top = welcomeTopPadding)
-                                    TypewriterText(
-                                        text = welcomeText,
-                                        animationKey = newChatEntryId,
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        typeSpeedMs = 100,
-                                        animate = newChatMotion.animateWelcomeText,
-                                        mode = TypewriterMode.TEXT_GRADIENT,
-                                        modifier = welcomeModifier,
-                                    )
+                                    when (activeTab) {
+                                        FullFlowTab.HOME -> {
+                                            com.newoether.agora.ui.chat.fullflow.FullFlowHomeHost(
+                                                isNewChatMode = true,
+                                                conversationsCount = displayConversations.size,
+                                                conversations = displayConversations,
+                                                viewModel = viewModel,
+                                                onOpenSearch = { conversationInteraction.activateSearch() },
+                                                onOpenDrawer = {
+                                                    if (drawerEnabled) scope.launch { drawerState.toggle(motionPolicy) }
+                                                },
+                                                onActivateComposer = { text ->
+                                                    if (!text.isNullOrEmpty()) {
+                                                        textFieldState.edit {
+                                                            replace(0, length, text)
+                                                        }
+                                                    }
+                                                    inputFocusRequester.requestFocus()
+                                                },
+                                                onSendTask = { text ->
+                                                    val submitted = viewModel.conversationComposerSubmission.submit(
+                                                        ownerId = composerOwnerId,
+                                                        text = text,
+                                                        attachmentIds = emptyList(),
+                                                    )
+                                                    if (submitted) {
+                                                        com.newoether.agora.ui.common.SoundIdentity.playSound(context, com.newoether.agora.ui.common.SoundIdentity.SoundType.SEND)
+                                                    }
+                                                    if (!submitted && !viewModel.conversationComposerSubmission.isFrozen(composerOwnerId)) {
+                                                        textFieldState.edit { replace(0, length, text) }
+                                                        inputFocusRequester.requestFocus()
+                                                    }
+                                                },
+                                                onResetHome = { viewModel.createNewChat() },
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                        FullFlowTab.RECHERCHE -> {
+                                            com.newoether.agora.ui.webresearch.ResearchScreen(
+                                                viewModel = viewModel,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                        FullFlowTab.PODCAST -> {
+                                            com.newoether.agora.studio.reader.PodcastAndReaderScreen(
+                                                viewModel = viewModel,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                        FullFlowTab.IMAGE -> {
+                                            com.newoether.agora.studio.image.GeminiImageStudioScreen(
+                                                onClose = { activeTab = FullFlowTab.HOME },
+                                                onInsertToChat = { image ->
+                                                    com.newoether.agora.studio.image.GeminiImageStudioController.sendToChat(image)
+                                                },
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                        FullFlowTab.VIDEO -> {
+                                            com.newoether.agora.studio.video.GeminiVideoStudioScreen(
+                                                onClose = { activeTab = FullFlowTab.HOME },
+                                                onInsertToChat = { video ->
+                                                    com.newoether.agora.studio.video.GeminiVideoStudioController.sendToChat(video)
+                                                },
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         } else {
@@ -788,9 +943,8 @@ fun ChatApp(
                                 conversationInteraction.toggleAllShareMessages()
                             },
                             onConfirm = {
-                                val selection = conversationInteraction.takeShareSelection()
-                                if (selection.isNotEmpty()) {
-                                    viewModel.shareMessages(selection)
+                                if (selectedShareMessageIds.isNotEmpty()) {
+                                    showExportDialog = true
                                 }
                             },
                         )
@@ -889,10 +1043,7 @@ fun ChatApp(
                         composerOwnerId = composerOwnerId,
                         composerController = viewModel.conversationComposer,
                         composerSnapshot = composerSnapshot,
-                        onStopGeneration = {
-                            haptics.interrupt()
-                            viewModel.stopGeneration()
-                        },
+                        onStopGeneration = { haptics.interrupt(); viewModel.stopGeneration() },
                         isLoading = isLoading,
                         isCompacting = isCompacting,
                         isSwitching = isSwitching,
@@ -929,9 +1080,7 @@ fun ChatApp(
                         lowContextModeEnabled = conversationControls.lowContextModeEnabled,
                         onLowContextModeToggle = { enabled ->
                             haptics.toggle(enabled)
-                            viewModel.updateConversationSetting(conversationControls.settingsOwnerId) {
-                                it.copy(lowContextModeEnabled = enabled)
-                            }
+                            viewModel.updateConversationSetting(conversationControls.settingsOwnerId) { it.copy(lowContextModeEnabled = enabled) }
                         },
                         // The model row owns its selection tick. Repeating it here produced the
                         // previous double buzz for one physical tap.
@@ -971,6 +1120,7 @@ fun ChatApp(
                         queuedSends = queuedSends,
                         onRemoveQueuedSend = viewModel::removeQueuedSend,
                         isStopping = isStopping,
+                        onLaunchGeminiLive = { showGeminiLiveDialog = true },
                     )
                             }
                         }
@@ -990,10 +1140,253 @@ fun ChatApp(
         compactPrompt = compactPrompt,
         compactRetainCount = compactRetainCount,
         enabledModels = chatEnabledModels,
-        modelAliases = chatModelAliases, customProviders = customProviders,
+        modelAliases = chatModelAliases,
+        customProviders = customProviders,
         modelProviderNames = modelProviderNames,
         isCompacting = isCompacting,
+        geminiLiveVisible = showGeminiLiveDialog,
+        onDismissGeminiLive = { showGeminiLiveDialog = false },
+        fullFlowGenMailVisible = showGenMailDialog || genMailFromController,
+        onDismissFullFlowGenMail = {
+            showGenMailDialog = false
+            com.newoether.agora.ui.chat.fullflow.GenMailController.closeGenMail()
+        },
+        onGenerateMail = { inputFocusRequester.requestFocus() },
+        fullFlowPlusVisible = showPlusSheet,
+        onDismissFullFlowPlus = { showPlusSheet = false },
+        onLaunchGeminiLiveFromPlus = { showGeminiLiveDialog = true },
+        onNewChatFromPlus = { viewModel.createNewChat() },
+        onOpenTasksFromPlus = { onOpenTasks(null) },
+        onOpenSettingsFromPlus = onOpenSettings,
+        composerOwnerId = composerOwnerId,
     )
 
+    com.newoether.agora.ui.chat.audio.FullFlowAudioHost(viewModel, textFieldState, inputFocusRequester) { showGenMailDialog = true }
+    com.newoether.agora.wand.WandInputBarHost(
+        textFieldState = textFieldState,
+        settings = viewModel.settings,
+        skillManager = viewModel.skillManager,
+    )
+    // Post-response Magic Wand: reformulate/amplify any existing message text.
+    com.newoether.agora.wand.WandMessagePickerHost(
+        sourceText = com.newoether.agora.wand.WandMessageTrigger.pendingSourceText,
+        onDismiss = { com.newoether.agora.wand.WandMessageTrigger.clear() },
+    )
     ChatForkConfirmationHost(pendingForkRequest, viewModel) { pendingForkRequest = null }
+
+    DisposableEffect(composerOwnerId) {
+        com.newoether.agora.ui.chat.message.FollowUpSuggestionController.onSuggestionSelected = { suggestion ->
+            textFieldState.edit {
+                replace(0, length, suggestion)
+            }
+            inputFocusRequester.requestFocus()
+        }
+        com.newoether.agora.ui.chat.message.FollowUpSuggestionController.onSuggestionSend = { suggestion ->
+            val submitted = viewModel.conversationComposerSubmission.submit(
+                ownerId = composerOwnerId,
+                text = suggestion,
+                attachmentIds = emptyList(),
+            )
+            if (!submitted && !viewModel.conversationComposerSubmission.isFrozen(composerOwnerId)) {
+                textFieldState.edit { replace(0, length, suggestion) }
+                inputFocusRequester.requestFocus()
+            }
+        }
+        onDispose {
+            com.newoether.agora.ui.chat.message.FollowUpSuggestionController.onSuggestionSelected = null
+            com.newoether.agora.ui.chat.message.FollowUpSuggestionController.onSuggestionSend = null
+        }
+    }
+
+    // ── Save to Second Brain: when the user taps the bookmark on a message,
+    // the text is saved as a Markdown note in the vault. ──
+    val brainSaveText = com.newoether.agora.tool.BrainSaveController.pendingSave
+    val brainContext = androidx.compose.ui.platform.LocalContext.current
+    androidx.compose.runtime.LaunchedEffect(brainSaveText) {
+        if (brainSaveText != null) {
+            val container = runCatching {
+                (brainContext.applicationContext as? com.newoether.agora.AgoraApplication)?.requireContainer()
+            }.getOrNull()
+            if (container != null) {
+                val db = container.database
+                val repo = com.newoether.agora.data.notes.NoteRepository(
+                    noteDao = db.noteDao(),
+                    taskDao = db.obsidianTaskDao(),
+                    embeddingDao = db.noteEmbeddingDao(),
+                    notesDir = java.io.File(brainContext.filesDir, "notes"),
+                    generateEmbedding = { text ->
+                        val generator = com.newoether.agora.service.BrainEmbeddingService.getGenerator(brainContext)
+                        generator(text)
+                    },
+                )
+                val timestamp = System.currentTimeMillis()
+                val title = brainSaveText.lines().firstOrNull { it.isNotBlank() }?.take(60) ?: "Saved note"
+                val filePath = "Chat/Saved_${timestamp}.md"
+                val content = "# $title\n\n$brainSaveText"
+                repo.saveNote(filePath, content)
+                com.newoether.agora.ui.common.SoundIdentity.playSound(brainContext, com.newoether.agora.ui.common.SoundIdentity.SoundType.BOOKMARK)
+                android.widget.Toast.makeText(brainContext, "Sauvé dans le Second Cerveau", android.widget.Toast.LENGTH_SHORT).show()
+            }
+            com.newoether.agora.tool.BrainSaveController.clear()
+        }
+    }
+
+    val isMeshStudioOpen by com.newoether.agora.mesh.MeshController.isStudioOpen.collectAsState()
+    if (isMeshStudioOpen) {
+        com.newoether.agora.mesh.ui.MeshStudioDialog(
+            onDismissRequest = { com.newoether.agora.mesh.MeshController.closeStudio() }
+        )
+    }
+
+    if (showExportDialog) {
+        var selectedFormat by remember { mutableStateOf(ExportFormat.TXT) }
+        var exportScopeSelected by remember(selectedShareMessageIds) {
+            mutableStateOf(selectedShareMessageIds.isNotEmpty())
+        }
+
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showExportDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Share,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = "Exporter la conversation",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Périmètre :",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        androidx.compose.material3.FilterChip(
+                            selected = !exportScopeSelected,
+                            onClick = { exportScopeSelected = false },
+                            label = { Text("Tous les messages") }
+                        )
+
+                        val hasSelected = selectedShareMessageIds.isNotEmpty()
+                        androidx.compose.material3.FilterChip(
+                            selected = exportScopeSelected,
+                            onClick = {
+                                if (hasSelected) {
+                                    exportScopeSelected = true
+                                } else {
+                                    showExportDialog = false
+                                    conversationInteraction.activateShareSelection()
+                                }
+                            },
+                            label = {
+                                Text(if (hasSelected) "${selectedShareMessageIds.size} sélectionné(s)" else "Sélectionner...")
+                            }
+                        )
+                    }
+
+                    androidx.compose.material3.HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    )
+
+                    Text(
+                        text = "Format d'exportation :",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                    )
+                    
+                    ExportFormat.values().forEach { format ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { selectedFormat = format }
+                                .padding(vertical = 4.dp, horizontal = 4.dp)
+                        ) {
+                            androidx.compose.material3.RadioButton(
+                                selected = (selectedFormat == format),
+                                onClick = { selectedFormat = format }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = format.displayName,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                )
+                                val description = when (format) {
+                                    ExportFormat.TXT -> "Format texte brut universel, parfait pour un archivage simple."
+                                    ExportFormat.MD -> "Format Markdown structuré, idéal pour Notion, Obsidian ou GitHub."
+                                    ExportFormat.HTML -> "Page web stylisée interactive, prête à être lue sur n'importe quel navigateur."
+                                    ExportFormat.JSON -> "Format structuré JSON, destiné aux développeurs et à l'analyse de données."
+                                }
+                                Text(
+                                    text = description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        showExportDialog = false
+                        val convId = currentConversationId ?: return@Button
+                        val targetSelection = if (exportScopeSelected && selectedShareMessageIds.isNotEmpty()) {
+                            selectedShareMessageIds
+                        } else null
+                        if (exportScopeSelected) {
+                            conversationInteraction.dismissShareSelection()
+                        }
+                        scope.launch {
+                            val exportMessages = viewModel.getExportableMessages(
+                                conversationId = convId,
+                                selectedMessageIds = targetSelection
+                            )
+                            ConversationExporter.export(
+                                context = context,
+                                messages = exportMessages,
+                                format = selectedFormat,
+                                conversationTitle = currentConversation?.title
+                            )
+                        }
+                    }
+                ) {
+                    Text("Exporter")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showExportDialog = false }) {
+                    Text("Annuler")
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    }
+}
+
+enum class FullFlowTab {
+    HOME,
+    RECHERCHE,
+    PODCAST,
+    IMAGE,
+    VIDEO
 }

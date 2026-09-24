@@ -8,7 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.dp
+import com.newoether.agora.ui.ds.AgoraElevation
+import com.newoether.agora.ui.ds.AgoraSpacing
 
 /**
  * Section title matching SettingsGroup's label style.
@@ -17,12 +18,12 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 internal fun SectionLabel(text: String, firstInPage: Boolean) {
-    val topPadding = if (firstInPage) 12.dp else 36.dp
+    val topPadding = if (firstInPage) AgoraSpacing.Md else AgoraSpacing.Xxxl
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 32.dp, end = 16.dp, top = topPadding, bottom = 12.dp)
+        modifier = Modifier.padding(start = AgoraSpacing.Xxxl, end = AgoraSpacing.Lg, top = topPadding, bottom = AgoraSpacing.Md)
     )
 }
 
@@ -39,11 +40,11 @@ internal fun CardSurface(
     Surface(
         shape = shape,
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
+        tonalElevation = AgoraElevation.CardTonal,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .then(if (addTopGap) Modifier.padding(top = 2.dp) else Modifier)
+            .padding(horizontal = AgoraSpacing.Lg)
+            .then(if (addTopGap) Modifier.padding(top = AgoraSpacing.Xxs) else Modifier)
     ) {
         content()
     }

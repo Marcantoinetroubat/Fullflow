@@ -83,7 +83,7 @@ class ChatViewModel(
     private val automationExecutionGate: com.newoether.agora.automation.AutomationExecutionGate,
     private val generationRegistry: ConversationStateRegistry,
     private val shellConfirmation: ShellConfirmationController,
-    private val mcpRegistry: com.newoether.agora.mcp.McpRegistry,
+    val mcpRegistry: com.newoether.agora.mcp.McpRegistry,
     private val mcpToolProvider: com.newoether.agora.tool.McpToolProvider,
     private val taskExecutionEngine: com.newoether.agora.automation.TaskExecutionEngine,
 ) : AndroidViewModel(application) {
@@ -249,6 +249,16 @@ class ChatViewModel(
         )
     }
 
+    val proactiveIntelligence by lazy {
+        com.newoether.agora.proactive.ProactiveIntelligenceManager.getInstance(
+            context = application,
+            conversations = convRepo,
+            settings = settings,
+            providers = providerRegistry,
+            memoryManager = memoryManager,
+        )
+    }
+
     private fun startInitJobs() {
         viewModelScope.launch {
             conversations.filterNotNull().first()
@@ -270,7 +280,10 @@ class ChatViewModel(
             skillManager = skillManager,
             context = appContext,
             sandboxFactory = sandboxFactory,
-            additionalToolProviders = listOf(automationToolProvider, mcpToolProvider),
+            additionalToolProviders = listOf(
+                automationToolProvider, mcpToolProvider,
+                com.newoether.agora.wand.WandConnectionToolProvider(mcpRegistry),
+            ),
             customProviders = { settings.customProviders.value },
         ).also { gm ->
             // Gate lives in RagManager.indexMessageForRag (autoCacheEnabled + active model).
@@ -669,6 +682,7 @@ class ChatViewModel(
         appContext = appContext,
         pendingConversationSettings = pendingConversationSettings,
         onSnackbar = { msg -> emitSnackbar(msg) },
+        wandConnectionsConsumer = { com.newoether.agora.wand.WandController.consumePendingConnections() },
     )
     private val contextProjector by lazy {
         ConversationContextProjector(
@@ -897,11 +911,43 @@ class ChatViewModel(
     fun shareMessages(messageIds: Set<String>) =
         conversationForkShareController.shareMessages(messageIds)
 
+    suspend fun getExportableMessages(
+        conversationId: String,
+        selectedMessageIds: Set<String>? = null,
+    ): List<ChatMessage> {
+        val currentMessages = messages.value
+        val targetList = if (!selectedMessageIds.isNullOrEmpty()) {
+            currentMessages.filter { it.id in selectedMessageIds }
+        } else {
+            currentMessages
+        }
+        val targetIds = targetList.map { it.id }
+        val hydrated = messagePayloadHydration.loadMessages(
+            conversationId = conversationId,
+            messageIds = targetIds,
+        ) { it.forDisplay(settings.customProviders.value) }
+        val hydratedById = hydrated.associateBy { it.id }
+
+        return targetList.map { stub ->
+            val fromDb = hydratedById[stub.id]
+            if (fromDb != null && fromDb.text.isNotBlank()) {
+                fromDb
+            } else if (stub.text.isNotBlank()) {
+                stub
+            } else {
+                fromDb ?: stub
+            }
+        }
+    }
+
     fun renameConversation(id: String, newTitle: String) {
         conversationLifecycleController.rename(id, newTitle)
     }
 
     fun generateTitle(conversationId: String) = generationController.generateTitle(conversationId)
+    fun generateBackground(conversationId: String) = generationController.generateBackground(conversationId)
+    fun removeBackground(conversationId: String) = generationController.removeBackground(conversationId)
+    fun generatePodcast(conversationId: String) = generationController.generatePodcast(conversationId)
 
     fun setConversationSystemPrompt(id: String, promptId: String?) =
         conversationWorkspaces.setSystemPrompt(id, promptId)

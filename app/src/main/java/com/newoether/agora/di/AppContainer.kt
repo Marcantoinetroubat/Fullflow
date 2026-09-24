@@ -115,6 +115,20 @@ class AppContainer(
         appScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             conversationSettingsTransfers.replayPending()
         }
+        appScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            seedDefaultAgents()
+        }
+    }
+
+    /** Seeds the default agents and pipelines on first run. */
+    private suspend fun seedDefaultAgents() {
+        val dao = database.agentDao()
+        if (dao.getActiveAgents().isEmpty()) {
+            com.newoether.agora.studio.agent.AgentDefaults.defaultAgents.forEach { dao.upsertAgent(it) }
+        }
+        if (dao.getActivePipelines().isEmpty()) {
+            com.newoether.agora.studio.agent.AgentDefaults.defaultPipelines.forEach { dao.upsertPipeline(it) }
+        }
     }
     val taskRepository: TaskRepository by lazy {
         TaskRepository(chatDao)

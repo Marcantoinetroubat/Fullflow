@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
@@ -93,17 +92,20 @@ internal fun TaskMonthDayPickerDialog(
     var showMonthMenu by remember { mutableStateOf(false) }
     val allowSelectionAnimation = LocalAgoraMotionPolicy.current.allowSpatialTransitions
 
-    AlertDialog(
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.task_select_month_day),
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(28.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        title = {
-            Text(
-                stringResource(R.string.task_select_month_day),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+        confirmText = stringResource(R.string.ok),
+        onConfirm = {
+            onConfirm(
+                schedule.copy(
+                    month = selectedMonth,
+                    dayOfMonth = selectedDay,
+                    onceAtMillis = 0L,
+                )
             )
         },
+        dismissText = stringResource(R.string.cancel),
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
@@ -201,26 +203,6 @@ internal fun TaskMonthDayPickerDialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirm(
-                        schedule.copy(
-                            month = selectedMonth,
-                            dayOfMonth = selectedDay,
-                            onceAtMillis = 0L,
-                        )
-                    )
-                }
-            ) {
-                Text(stringResource(R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
     )
 }
 
@@ -315,7 +297,6 @@ internal fun TaskDatePickerDialog(
                     DatePickerDefaults.DatePickerTitle(
                         displayMode = pickerState.displayMode,
                         modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 20.dp),
-                        contentColor = pickerColors.titleContentColor,
                     )
                 }
             },
@@ -325,7 +306,6 @@ internal fun TaskDatePickerDialog(
                     displayMode = pickerState.displayMode,
                     dateFormatter = dateFormatter,
                     modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp),
-                    contentColor = pickerColors.headlineContentColor,
                 )
             },
             showModeToggle = true,
@@ -346,33 +326,20 @@ internal fun TaskTimePickerDialog(
         initialMinute = schedule.minute,
         is24Hour = use24HourFormat,
     )
-    AlertDialog(
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.task_at),
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(28.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        title = {
-            Text(stringResource(R.string.task_at), fontWeight = FontWeight.Bold)
+        confirmText = stringResource(R.string.ok),
+        onConfirm = {
+            onConfirm(schedule.withTime(pickerState.hour, pickerState.minute))
         },
+        dismissText = stringResource(R.string.cancel),
         text = {
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
                 TimePicker(state = pickerState)
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirm(schedule.withTime(pickerState.hour, pickerState.minute))
-                },
-            ) {
-                Text(stringResource(R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
             }
         },
     )
@@ -392,10 +359,15 @@ internal fun WeekdayDialog(
 ) {
     val names = weekdayNames()
     var working by remember { mutableStateOf(selected) }
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.task_days_of_week),
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.task_days_of_week), fontWeight = FontWeight.Bold) },
+        confirmText = stringResource(R.string.provider_save),
+        onConfirm = { onConfirm(working) },
+        dismissText = stringResource(R.string.cancel),
+        // Multi-select needs an explicit commit — unlike the single-choice pickers, one tap here
+        // is not the final answer.
+        confirmEnabled = working.isNotEmpty(),
         text = {
             androidx.compose.foundation.lazy.LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(7) { dow ->
@@ -417,14 +389,6 @@ internal fun WeekdayDialog(
                 }
             }
         },
-        // Multi-select needs an explicit commit — unlike the single-choice pickers, one tap here
-        // is not the final answer.
-        confirmButton = {
-            TextButton(enabled = working.isNotEmpty(), onClick = { onConfirm(working) }) {
-                Text(stringResource(R.string.provider_save))
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
@@ -434,10 +398,12 @@ internal fun DayOfMonthDialog(
     onSelect: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.task_day_of_month),
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.task_day_of_month), fontWeight = FontWeight.Bold) },
+        // Close, not Cancel: a tap applies immediately, so there is nothing to cancel.
+        confirmText = stringResource(R.string.provider_close),
+        onConfirm = onDismiss,
         text = {
             androidx.compose.foundation.lazy.LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(31) { index ->
@@ -451,7 +417,6 @@ internal fun DayOfMonthDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.provider_close)) } },
     )
 }
 
@@ -581,10 +546,12 @@ internal fun ModelPickerDialog(
     onSelect: (String?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.task_model),
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.task_model), fontWeight = FontWeight.Bold) },
+        // Close, not Cancel: a tap applies immediately, so there is nothing to cancel.
+        confirmText = stringResource(R.string.provider_close),
+        onConfirm = onDismiss,
         text = {
             androidx.compose.foundation.lazy.LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 item {
@@ -606,8 +573,6 @@ internal fun ModelPickerDialog(
                 }
             }
         },
-        // Close, not Cancel: a tap applies immediately, so there is nothing to cancel.
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.provider_close)) } },
     )
 }
 

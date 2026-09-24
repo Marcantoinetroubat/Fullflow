@@ -39,12 +39,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.newoether.agora.ui.ds.AgoraBreakpoints
 import com.newoether.agora.ui.motion.AgoraMotionPolicy
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 internal val DRAWER_MAX_WIDTH = 360.dp
-internal val CHAT_APP_WIDTH_THRESHOLD = 600.dp
+/** Seuil tablette : le chat garde 600dp min avant de passer en drawer côte-à-côte. */
+internal val CHAT_APP_WIDTH_THRESHOLD = AgoraBreakpoints.CompactMax
 internal const val DRAWER_TWEEN_DURATION_MILLIS = 300
 
 internal fun drawerWidthFor(screenWidth: Dp): Dp = minOf(screenWidth, DRAWER_MAX_WIDTH)
@@ -148,13 +150,7 @@ internal class ChatDrawerState internal constructor(
     private suspend fun animateTo(target: DrawerValue, motionPolicy: AgoraMotionPolicy) {
         if (target == DrawerValue.Open && !drawerEnabled) return
         if (motionPolicy.allowSpatialTransitions) {
-            anchoredState.animateTo(
-                target,
-                tween(
-                    durationMillis = DRAWER_TWEEN_DURATION_MILLIS,
-                    easing = LinearOutSlowInEasing,
-                ),
-            )
+            anchoredState.animateTo(target)
         } else {
             anchoredState.snapTo(target)
         }
@@ -162,8 +158,20 @@ internal class ChatDrawerState internal constructor(
 }
 
 @Composable
-internal fun rememberChatDrawerState(): ChatDrawerState = remember {
-    ChatDrawerState(AnchoredDraggableState(DrawerValue.Closed))
+internal fun rememberChatDrawerState(): ChatDrawerState {
+    val density = LocalDensity.current
+    val decayAnimationSpec = androidx.compose.animation.rememberSplineBasedDecay<Float>()
+    return remember {
+        ChatDrawerState(
+            AnchoredDraggableState(
+                initialValue = DrawerValue.Closed,
+                positionalThreshold = { distance -> distance * 0.5f },
+                velocityThreshold = { with(density) { 125.dp.toPx() } },
+                snapAnimationSpec = androidx.compose.animation.core.spring(),
+                decayAnimationSpec = decayAnimationSpec
+            )
+        )
+    }
 }
 
 @Composable
@@ -178,7 +186,7 @@ internal fun ChatDrawerHost(
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val scrimInteractionSource = remember { MutableInteractionSource() }
-    val screenWidth = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
+    val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
     val drawerWidth = drawerWidthFor(screenWidth)
     val drawerWidthPx = with(density) { drawerWidth.toPx() }
     val sideBySide = usesSideBySideDrawer(screenWidth)

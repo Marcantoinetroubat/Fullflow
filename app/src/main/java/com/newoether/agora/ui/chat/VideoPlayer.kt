@@ -83,8 +83,13 @@ fun VideoPlayer(
     }
 
     val player = remember {
+        val parsedUri = if (uri.startsWith("/") || !uri.contains("://")) {
+            Uri.fromFile(java.io.File(uri))
+        } else {
+            Uri.parse(uri)
+        }
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(Uri.parse(uri)))
+            setMediaItem(MediaItem.fromUri(parsedUri))
             prepare()
             playWhenReady = false
         }

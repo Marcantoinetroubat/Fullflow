@@ -58,6 +58,9 @@ import com.newoether.agora.automation.ScheduleType
 import com.newoether.agora.automation.TaskSchedule
 import com.newoether.agora.data.local.TaskEntity
 import com.newoether.agora.data.modelDisplayName
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraRadii
+import com.newoether.agora.ui.ds.AgoraSpacing
 import java.util.Calendar
 import com.newoether.agora.ui.chat.ChatDeleteConfirmDialog
 import com.newoether.agora.ui.chat.ChatDeleteDialogPhase
@@ -385,14 +388,14 @@ internal fun TaskDetailPage(
                         supportingContent = {
                             Text(
                                 stringResource(R.string.task_no_executions_desc),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint),
                             )
                         },
                         leadingContent = {
                             Icon(
                                 Icons.Default.History,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint),
                             )
                         },
                         modifier = Modifier.heightIn(min = 64.dp),
@@ -404,7 +407,7 @@ internal fun TaskDetailPage(
                 ExecutionRow(
                     execution = execution,
                     customProviders = customProviders,
-                    shape = stackedShape(index, executions.size),
+                    shape = AgoraRadii.stackedShape(index, executions.size),
                     onClick = {
                         editorSession.updateScroll(
                             listState.firstVisibleItemIndex,
@@ -416,7 +419,7 @@ internal fun TaskDetailPage(
                     menuEnabled = !isRunning,
                     onDelete = { executionToDelete = execution },
                 )
-                if (index < executions.lastIndex) Spacer(Modifier.height(STACK_GAP))
+                if (index < executions.lastIndex) Spacer(Modifier.height(AgoraSpacing.Xxs))
             }
         }
         item(key = "task_detail_fab_spacing") {

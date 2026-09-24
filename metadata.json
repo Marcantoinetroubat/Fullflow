@@ -1,0 +1,8 @@
+{
+  "name": "FullFlow",
+  "description": "Multi-provider AI chat assistant with agentic workflows, document search, and studio generation capabilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -18,6 +18,10 @@ object DebugLog {
     fun d(tag: String, msg: String, tr: Throwable) {
         if (active) android.util.Log.d(tag, "$msg ${safeThrowableSummary(tr)}")
     }
+    fun i(tag: String, msg: String) { if (active) android.util.Log.i(tag, msg) }
+    fun i(tag: String, msg: String, tr: Throwable) {
+        if (active) android.util.Log.i(tag, "$msg ${safeThrowableSummary(tr)}")
+    }
     fun e(tag: String, msg: String) { if (active) android.util.Log.e(tag, msg) }
     fun e(tag: String, msg: String, tr: Throwable) {
         if (active) android.util.Log.e(tag, "$msg ${safeThrowableSummary(tr)}")

@@ -107,7 +107,7 @@ class SettingsManager(private val context: Context) {
             ?: DEFAULT_CONTEXT_COMPACT_THRESHOLD_PERCENT
     }
     val codeExecutionEnabled: Flow<Boolean> = context.dataStore.data.map { it[CODE_EXECUTION_ENABLED] ?: false }
-    val googleSearchEnabled: Flow<Boolean> = context.dataStore.data.map { it[GOOGLE_SEARCH_ENABLED] ?: false }
+    val googleSearchEnabled: Flow<Boolean> = context.dataStore.data.map { it[GOOGLE_SEARCH_ENABLED] ?: true }
     val thinkingEnabled: Flow<Boolean> = context.dataStore.data.map { it[THINKING_ENABLED] ?: true }
     val thinkingLevel: Flow<String> = context.dataStore.data.map { ThinkingLevels.normalize(it[THINKING_LEVEL]) }
     val thinkingBudgetEnabled: Flow<Boolean> = context.dataStore.data.map { pref ->
@@ -170,12 +170,54 @@ class SettingsManager(private val context: Context) {
     }
     val webSearchNumResults: Flow<Int> = context.dataStore.data.map { it[WEB_SEARCH_NUM_RESULTS] ?: 5 }
     val webSearchBaseUrl: Flow<String> = context.dataStore.data.map { it[WEB_SEARCH_BASE_URL] ?: "" }
+    val webSearchFallbackEnabled: Flow<Boolean> = context.dataStore.data.map { it[WEB_SEARCH_FALLBACK_ENABLED] ?: true }
+    val webSearchMode: Flow<String> = context.dataStore.data.map { normalizeWebSearchMode(it[WEB_SEARCH_MODE]) }
 
     // ── Image generation ──────────────────────────────────────
     val imageGenEnabled: Flow<Boolean> = context.dataStore.data.map { it[IMAGE_GEN_ENABLED] ?: false }
     // Selected image model "Provider:modelId" (null = none chosen). Creds reused from that provider.
     val imageGenModel: Flow<String?> = context.dataStore.data.map { it[IMAGE_GEN_MODEL] }
     val imageGenSize: Flow<String> = context.dataStore.data.map { it[IMAGE_GEN_SIZE] ?: "1024x1024" }
+
+    // ── Video generation ──────────────────────────────────────
+    val videoGenEnabled: Flow<Boolean> = context.dataStore.data.map { it[VIDEO_GEN_ENABLED] ?: false }
+    val videoGenModel: Flow<String?> = context.dataStore.data.map { it[VIDEO_GEN_MODEL] }
+    val videoGenPrompt: Flow<String> = context.dataStore.data.map { it[VIDEO_GEN_PROMPT] ?: "" }
+    val videoGenNegativePrompt: Flow<String> = context.dataStore.data.map { it[VIDEO_GEN_NEGATIVE_PROMPT] ?: "blurry, jittery motion, distorted faces, watermark" }
+    val videoGenAspectRatio: Flow<String> = context.dataStore.data.map { it[VIDEO_GEN_ASPECT_RATIO] ?: "16:9" }
+    val videoGenDuration: Flow<Int> = context.dataStore.data.map { it[VIDEO_GEN_DURATION] ?: 5 }
+    val videoGenResolution: Flow<String> = context.dataStore.data.map { it[VIDEO_GEN_RESOLUTION] ?: "1080p" }
+
+    // ── Conversation Background generation ─────────────────────
+    val backgroundGenModel: Flow<String?> = context.dataStore.data.map { it[BACKGROUND_GEN_MODEL] }
+    val backgroundGenPrompt: Flow<String> = context.dataStore.data.map { it[BACKGROUND_GEN_PROMPT] ?: "" }
+    val backgroundGenOpacity: Flow<Float> = context.dataStore.data.map { it[BACKGROUND_GEN_OPACITY] ?: 0.35f }
+
+    // ── Conversation Podcast generation ───────────────────────
+    val podcastGenModel: Flow<String?> = context.dataStore.data.map { it[PODCAST_GEN_MODEL] }
+    val podcastGenPrompt: Flow<String> = context.dataStore.data.map { it[PODCAST_GEN_PROMPT] ?: "" }
+    val podcastGenTtsEngine: Flow<String> = context.dataStore.data.map { it[PODCAST_GEN_TTS_ENGINE] ?: "GEMINI_CLOUD" }
+    val podcastGenTtsModel: Flow<String?> = context.dataStore.data.map { it[PODCAST_GEN_TTS_MODEL] }
+    val podcastGenVoice: Flow<String> = context.dataStore.data.map { it[PODCAST_GEN_VOICE] ?: "Kore" }
+
+    // ── Text-to-Speech (TTS) ──────────────────────────────────
+    val ttsProviderModel: Flow<String?> = context.dataStore.data.map { it[TTS_PROVIDER_MODEL] }
+    val ttsVoice: Flow<String> = context.dataStore.data.map { it[TTS_VOICE] ?: "Kore" }
+    val ttsSpeed: Flow<Float> = context.dataStore.data.map { it[TTS_SPEED] ?: 1.0f }
+    val ttsEngineMode: Flow<String> = context.dataStore.data.map { it[TTS_ENGINE_MODE] ?: "SYSTEM" }
+
+    // ── Proactive Intelligence ────────────────────────────────
+    val proactiveIntelligenceEnabled: Flow<Boolean> = context.dataStore.data.map { it[PROACTIVE_INTELLIGENCE_ENABLED] ?: true }
+    val proactiveIntelligenceProvider: Flow<String?> = context.dataStore.data.map { it[PROACTIVE_INTELLIGENCE_PROVIDER] }
+    val proactiveIntelligenceModel: Flow<String?> = context.dataStore.data.map { it[PROACTIVE_INTELLIGENCE_MODEL] }
+    val proactiveIntelligencePrompt: Flow<String> = context.dataStore.data.map { it[PROACTIVE_INTELLIGENCE_PROMPT] ?: BuiltInPrompts.PROACTIVE_INTELLIGENCE_SYSTEM }
+
+    // ── Editorial Magazine ────────────────────────────────────
+    val editorialEnabled: Flow<Boolean> = context.dataStore.data.map { it[EDITORIAL_ENABLED] ?: false }
+    val editorialImageModel: Flow<String?> = context.dataStore.data.map { it[EDITORIAL_IMAGE_MODEL] }
+    val editorialImagePrompt: Flow<String> = context.dataStore.data.map { it[EDITORIAL_IMAGE_PROMPT] ?: "Illustration éditoriale de style magazine premium, artistique, détaillée, sans texte." }
+    val editorialImageFrequency: Flow<Int> = context.dataStore.data.map { it[EDITORIAL_IMAGE_FREQUENCY] ?: 2 }
+    val editorialSerifEnabled: Flow<Boolean> = context.dataStore.data.map { it[EDITORIAL_SERIF_ENABLED] ?: true }
     val searchContextWindow: Flow<Int> = context.dataStore.data.map { it[SEARCH_CONTEXT_WINDOW] ?: 8 }
     val searchMatchLimit: Flow<Int> = context.dataStore.data.map { it[SEARCH_MATCH_LIMIT] ?: 10 }
     val ragThreshold: Flow<Float> = context.dataStore.data.map { it[RAG_THRESHOLD]?.toFloatOrNull() ?: 0.5f }
@@ -252,6 +294,7 @@ class SettingsManager(private val context: Context) {
     val parseInlineDollarMath: Flow<Boolean> =
         context.dataStore.data.map { it[PARSE_INLINE_DOLLAR_MATH] ?: false }
     val hapticsEnabled: Flow<Boolean> = context.dataStore.data.map { it[HAPTICS_ENABLED] ?: true }
+    val soundsEnabled: Flow<Boolean> = context.dataStore.data.map { it[SOUNDS_ENABLED] ?: true }
     val detailedTokenUsage: Flow<Boolean> =
         context.dataStore.data.map { it[DETAILED_TOKEN_USAGE] ?: false }
     val toolCallDisplayMode: Flow<String> = context.dataStore.data.map { ToolCallDisplayModes.normalize(it[TOOL_CALL_DISPLAY_MODE]) }
@@ -503,6 +546,12 @@ class SettingsManager(private val context: Context) {
     suspend fun saveWebSearchBaseUrl(url: String) {
         context.dataStore.edit { it[WEB_SEARCH_BASE_URL] = url }
     }
+    suspend fun saveWebSearchFallbackEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[WEB_SEARCH_FALLBACK_ENABLED] = enabled }
+    }
+    suspend fun saveWebSearchMode(mode: String) {
+        context.dataStore.edit { it[WEB_SEARCH_MODE] = normalizeWebSearchMode(mode) }
+    }
     suspend fun saveImageGenEnabled(enabled: Boolean) {
         context.dataStore.edit { it[IMAGE_GEN_ENABLED] = enabled }
     }
@@ -513,6 +562,108 @@ class SettingsManager(private val context: Context) {
     }
     suspend fun saveImageGenSize(size: String) {
         context.dataStore.edit { it[IMAGE_GEN_SIZE] = size }
+    }
+    suspend fun saveVideoGenEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[VIDEO_GEN_ENABLED] = enabled }
+    }
+    suspend fun saveVideoGenModel(model: String?) {
+        context.dataStore.edit {
+            if (model == null) it.remove(VIDEO_GEN_MODEL) else it[VIDEO_GEN_MODEL] = model
+        }
+    }
+    suspend fun saveVideoGenPrompt(prompt: String) {
+        context.dataStore.edit { it[VIDEO_GEN_PROMPT] = prompt }
+    }
+    suspend fun saveVideoGenNegativePrompt(negPrompt: String) {
+        context.dataStore.edit { it[VIDEO_GEN_NEGATIVE_PROMPT] = negPrompt }
+    }
+    suspend fun saveVideoGenAspectRatio(ratio: String) {
+        context.dataStore.edit { it[VIDEO_GEN_ASPECT_RATIO] = ratio }
+    }
+    suspend fun saveVideoGenDuration(duration: Int) {
+        context.dataStore.edit { it[VIDEO_GEN_DURATION] = duration }
+    }
+    suspend fun saveVideoGenResolution(res: String) {
+        context.dataStore.edit { it[VIDEO_GEN_RESOLUTION] = res }
+    }
+    suspend fun saveBackgroundGenModel(model: String?) {
+        context.dataStore.edit {
+            if (model == null) it.remove(BACKGROUND_GEN_MODEL) else it[BACKGROUND_GEN_MODEL] = model
+        }
+    }
+    suspend fun saveBackgroundGenPrompt(prompt: String) {
+        context.dataStore.edit { it[BACKGROUND_GEN_PROMPT] = prompt }
+    }
+    suspend fun saveBackgroundGenOpacity(opacity: Float) {
+        context.dataStore.edit { it[BACKGROUND_GEN_OPACITY] = opacity }
+    }
+    suspend fun savePodcastGenModel(model: String?) {
+        context.dataStore.edit {
+            if (model == null) it.remove(PODCAST_GEN_MODEL) else it[PODCAST_GEN_MODEL] = model
+        }
+    }
+    suspend fun savePodcastGenPrompt(prompt: String) {
+        context.dataStore.edit { it[PODCAST_GEN_PROMPT] = prompt }
+    }
+    suspend fun savePodcastGenTtsEngine(engine: String) {
+        context.dataStore.edit { it[PODCAST_GEN_TTS_ENGINE] = engine }
+    }
+    suspend fun savePodcastGenTtsModel(model: String?) {
+        context.dataStore.edit {
+            if (model == null) it.remove(PODCAST_GEN_TTS_MODEL) else it[PODCAST_GEN_TTS_MODEL] = model
+        }
+    }
+    suspend fun savePodcastGenVoice(voice: String) {
+        context.dataStore.edit { it[PODCAST_GEN_VOICE] = voice }
+    }
+    suspend fun saveTtsProviderModel(model: String?) {
+        context.dataStore.edit {
+            if (model == null) it.remove(TTS_PROVIDER_MODEL) else it[TTS_PROVIDER_MODEL] = model
+        }
+    }
+    suspend fun saveTtsVoice(voice: String) {
+        context.dataStore.edit { it[TTS_VOICE] = voice }
+    }
+    suspend fun saveTtsSpeed(speed: Float) {
+        context.dataStore.edit { it[TTS_SPEED] = speed }
+    }
+    suspend fun saveTtsEngineMode(mode: String) {
+        context.dataStore.edit { it[TTS_ENGINE_MODE] = mode }
+    }
+    suspend fun saveProactiveIntelligenceEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[PROACTIVE_INTELLIGENCE_ENABLED] = enabled }
+    }
+    suspend fun saveProactiveIntelligenceProvider(provider: String?) {
+        context.dataStore.edit {
+            if (provider == null) it.remove(PROACTIVE_INTELLIGENCE_PROVIDER) else it[PROACTIVE_INTELLIGENCE_PROVIDER] = provider
+        }
+    }
+    suspend fun saveProactiveIntelligenceModel(model: String?) {
+        context.dataStore.edit {
+            if (model == null) it.remove(PROACTIVE_INTELLIGENCE_MODEL) else it[PROACTIVE_INTELLIGENCE_MODEL] = model
+        }
+    }
+
+    // ── Editorial Magazine ────────────────────────────────────
+    suspend fun saveEditorialEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[EDITORIAL_ENABLED] = enabled }
+    }
+    suspend fun saveEditorialImageModel(model: String?) {
+        context.dataStore.edit {
+            if (model == null) it.remove(EDITORIAL_IMAGE_MODEL) else it[EDITORIAL_IMAGE_MODEL] = model
+        }
+    }
+    suspend fun saveEditorialImagePrompt(prompt: String) {
+        context.dataStore.edit { it[EDITORIAL_IMAGE_PROMPT] = prompt }
+    }
+    suspend fun saveEditorialImageFrequency(freq: Int) {
+        context.dataStore.edit { it[EDITORIAL_IMAGE_FREQUENCY] = freq }
+    }
+    suspend fun saveEditorialSerifEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[EDITORIAL_SERIF_ENABLED] = enabled }
+    }
+    suspend fun saveProactiveIntelligencePrompt(prompt: String) {
+        context.dataStore.edit { it[PROACTIVE_INTELLIGENCE_PROMPT] = prompt }
     }
     suspend fun saveSearchMatchLimit(n: Int) {
         context.dataStore.edit { it[SEARCH_MATCH_LIMIT] = n }
@@ -735,6 +886,9 @@ class SettingsManager(private val context: Context) {
     suspend fun saveHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { it[HAPTICS_ENABLED] = enabled }
     }
+    suspend fun saveSoundsEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[SOUNDS_ENABLED] = enabled }
+    }
     suspend fun saveDetailedTokenUsage(enabled: Boolean) {
         context.dataStore.edit { it[DETAILED_TOKEN_USAGE] = enabled }
     }
@@ -862,6 +1016,8 @@ class SettingsManager(private val context: Context) {
             prefs.remove(IMAGE_GEN_ENABLED)
             prefs.remove(IMAGE_GEN_MODEL)
             prefs.remove(IMAGE_GEN_SIZE)
+            prefs.remove(VIDEO_GEN_ENABLED)
+            prefs.remove(VIDEO_GEN_MODEL)
             prefs.remove(SEARCH_CONTEXT_WINDOW)
             prefs.remove(SEARCH_MATCH_LIMIT)
             prefs.remove(RAG_THRESHOLD)

@@ -224,7 +224,7 @@ internal fun LoopControlBar(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = onStop, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = onStop, modifier = Modifier.size(48.dp)) {
                     Icon(
                         Icons.Default.StopCircle,
                         contentDescription = stringResource(R.string.loop_stop),

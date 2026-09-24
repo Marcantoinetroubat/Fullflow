@@ -30,6 +30,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Terminal
@@ -47,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.ExperimentalFoundationApi
+import com.newoether.agora.ui.components.TextField
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.newoether.agora.R
@@ -55,6 +58,9 @@ import com.newoether.agora.model.SelectedAttachment
 import com.newoether.agora.ui.common.LocalAgoraHaptics
 import com.newoether.agora.ui.common.openAiServiceTierShortLabel
 import com.newoether.agora.ui.common.thinkingControlShortLabel
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraElevation
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
 import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as CircularProgressIndicator
 import com.newoether.agora.ui.theme.ChatType
@@ -76,18 +82,8 @@ import kotlinx.coroutines.withContext
 import com.newoether.agora.data.CustomProviderConfig
 import com.newoether.agora.data.providerDisplayName
 import com.newoether.agora.data.modelDisplayName
-internal val CHAT_BOTTOM_BAR_OUTER_RADIUS = 28.dp
-internal val CHAT_BOTTOM_BAR_OUTER_SHAPE = RoundedCornerShape(CHAT_BOTTOM_BAR_OUTER_RADIUS)
+
 internal val CHAT_DROPDOWN_MENU_SHAPE = RoundedCornerShape(16.dp)
-internal fun contextUsageExceedsCompactThreshold(
-    estimatedTokens: Int, tokenBudget: Int, thresholdPercent: Int,
-): Boolean {
-    val normalizedBudget = tokenBudget.coerceAtLeast(1)
-    val normalizedPercent = thresholdPercent.coerceIn(50, 100)
-    val threshold = ((normalizedBudget.toLong() * normalizedPercent + 99L) / 100L)
-        .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-    return tokenBudget > 0 && estimatedTokens > threshold
-}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -164,6 +160,7 @@ internal fun ChatBottomBar(
     queuedSends: List<QueuedSend> = emptyList(),
     onRemoveQueuedSend: (String) -> Unit = {},
     isStopping: Boolean = false,
+    onLaunchGeminiLive: () -> Unit = {},
 ) {
     val motionPolicy = LocalAgoraMotionPolicy.current
     val allowSpatialTransitions = motionPolicy.allowSpatialTransitions
@@ -450,16 +447,30 @@ internal fun ChatBottomBar(
                 exit = ExitTransition.None,
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {
-                val elevatedSurface = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-                IconButton(onClick = { if (!isExpandAnimating) onExpand() }, modifier = Modifier.padding(end = 4.dp, top = 4.dp).size(40.dp).background(Brush.radialGradient(listOf(elevatedSurface, elevatedSurface.copy(alpha = 0.5f), Color.Transparent)), CircleShape)) { Icon(painter = androidx.compose.ui.res.painterResource(id = R.drawable.expand_all_24px), contentDescription = stringResource(R.string.expand), modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)) }
+                val elevatedSurface = MaterialTheme.colorScheme.surfaceColorAtElevation(AgoraElevation.Level2)
+                IconButton(onClick = { if (!isExpandAnimating) onExpand() }, modifier = Modifier.padding(end = AgoraSpacing.Xs, top = AgoraSpacing.Xs).size(48.dp).background(Brush.radialGradient(listOf(elevatedSurface, elevatedSurface.copy(alpha = AgoraAlpha.Hint), Color.Transparent)), CircleShape)) { Icon(painter = androidx.compose.ui.res.painterResource(id = R.drawable.expand_all_24px), contentDescription = stringResource(R.string.expand), modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary) }
             }
         }
         }
 
+        var wandPickerRequested by remember { mutableStateOf(false) }
+        if (wandPickerRequested) com.newoether.agora.wand.WandPickerHost(textFieldState, true) { wandPickerRequested = false }
+
+        // Agent Pipeline picker
+        com.newoether.agora.studio.agent.AgentPipelinePickerHost()
+
         Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp, start = 8.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(48.dp).background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp), RoundedCornerShape(100)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(48.dp).background(MaterialTheme.colorScheme.surfaceColorAtElevation(AgoraSpacing.Sm), CircleShape).padding(horizontal = AgoraSpacing.Sm, vertical = AgoraSpacing.Xs)) {
+                var activeMenu by remember { mutableStateOf<String?>(null) }
                 AttachmentAddMenu(
                     enabled = !submission.isFrozen,
+                    onWandClick = { wandPickerRequested = true },
+                    onPipelineClick = {
+                        val text = textFieldState.text.toString()
+                        if (text.isNotBlank()) {
+                            com.newoether.agora.studio.agent.AgentPipelineController.open(text)
+                        }
+                    },
                     onCamera = {
                         activityLaunchScope.launch {
                             val target = composer.createCameraCaptureTarget()
@@ -501,7 +512,6 @@ internal fun ChatBottomBar(
                     },
                     onFiles = { pendingFileOwnerId = composerOwnerId; fileLauncher.launch("*/*") },
                 )
-                var activeMenu by remember { mutableStateOf<String?>(null) }
                 var lastModelDismissTime by remember { mutableLongStateOf(0L) }
                 var lastContextDismissTime by remember { mutableLongStateOf(0L) }
                 var lastToolsDismissTime by remember { mutableLongStateOf(0L) }
@@ -530,7 +540,7 @@ internal fun ChatBottomBar(
                                 activeMenu = "model"
                             }
                         },
-                        modifier = Modifier.height(38.dp).widthIn(max = 160.dp).menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
+                        modifier = Modifier.height(38.dp).widthIn(max = 160.dp).menuAnchor(),
                         contentPadding = PaddingValues(8.dp)
                     ) {
                         Text(
@@ -637,10 +647,7 @@ internal fun ChatBottomBar(
                         },
                         modifier = Modifier
                             .size(32.dp)
-                            .menuAnchor(
-                                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                                enabled = true,
-                            ),
+                            .menuAnchor(),
                     ) {
                         CircularProgressIndicator(
                             progress = { contextProgress },
@@ -700,7 +707,7 @@ internal fun ChatBottomBar(
                                 activeMenu = "tools"
                             }
                         }, 
-                        modifier = Modifier.size(32.dp).menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
+                        modifier = Modifier.size(32.dp).menuAnchor()
                     ) {
                         Icon(Icons.Default.MoreVert, stringResource(R.string.tools), modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -935,29 +942,63 @@ internal fun ChatBottomBar(
                     }
                 }
             }
-            ComposerSendButton(
-                textFieldState = textFieldState,
-                ownerId = composerOwnerId,
-                snapshot = composerSnapshot,
-                submissionController = submissionController,
-                submission = submission,
-                isLoading = isLoading,
-                isSwitching = isSwitching,
-                isStopping = isStopping,
-                isModelValid = isModelValid,
-                onStopGeneration = onStopGeneration,
-                onCollapse = onCollapse,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Live Voice — opens the persona picker for real-time voice conversation
+                IconButton(
+                    onClick = {
+                        com.newoether.agora.ui.chat.live.LiveVoiceController.open()
+                    },
+                    modifier = Modifier.size(42.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "Conversation vocale live",
+                        modifier = Modifier.size(22.dp),
+                        tint = androidx.compose.ui.graphics.Color(0xFF4FC3F7),
+                    )
+                }
+
+                val hasWandText = textFieldState.text.isNotBlank()
+                IconButton(
+                    onClick = { wandPickerRequested = true },
+                    enabled = !submission.isFrozen,
+                    modifier = Modifier.size(42.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = stringResource(R.string.wand_menu_title),
+                        modifier = Modifier.size(22.dp),
+                        tint = if (hasWandText) androidx.compose.ui.graphics.Color(0xFFA78BFA) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+
+                ComposerSendButton(
+                    textFieldState = textFieldState,
+                    ownerId = composerOwnerId,
+                    snapshot = composerSnapshot,
+                    submissionController = submissionController,
+                    submission = submission,
+                    isLoading = isLoading,
+                    isSwitching = isSwitching,
+                    isStopping = isStopping,
+                    isModelValid = isModelValid,
+                    onStopGeneration = onStopGeneration,
+                    onCollapse = onCollapse,
+                )
+            }
         }
         }
         AnimatedVisibility(
             visible = isExpanded,
             enter = fadeIn(tween(250)),
             exit = fadeOut(tween(250)),
-            modifier = Modifier.align(Alignment.TopEnd).padding(end = 4.dp, top = 4.dp)
+            modifier = Modifier.align(Alignment.TopEnd).padding(end = AgoraSpacing.Xs, top = AgoraSpacing.Xs)
         ) {
-            val elevatedSurface = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-            IconButton(onClick = { if (!isExpandAnimating) onCollapse() }, modifier = Modifier.size(40.dp).background(Brush.radialGradient(listOf(elevatedSurface, elevatedSurface.copy(alpha = 0.5f), Color.Transparent)), CircleShape)) { Icon(painter = androidx.compose.ui.res.painterResource(id = R.drawable.collapse_all_24px), contentDescription = stringResource(R.string.collapse), modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)) }
+            val elevatedSurface = MaterialTheme.colorScheme.surfaceColorAtElevation(AgoraElevation.Level2)
+            IconButton(onClick = { if (!isExpandAnimating) onCollapse() }, modifier = Modifier.size(48.dp).background(Brush.radialGradient(listOf(elevatedSurface, elevatedSurface.copy(alpha = AgoraAlpha.Hint), Color.Transparent)), CircleShape)) { Icon(painter = androidx.compose.ui.res.painterResource(id = R.drawable.collapse_all_24px), contentDescription = stringResource(R.string.collapse), modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary) }
         }
     }
 

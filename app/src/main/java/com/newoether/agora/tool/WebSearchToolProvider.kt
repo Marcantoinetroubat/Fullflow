@@ -8,6 +8,7 @@ import com.newoether.agora.api.ToolFunction
 import com.newoether.agora.api.ToolParameters
 import com.newoether.agora.api.ToolProperty
 import com.newoether.agora.util.Constants
+import com.newoether.agora.data.normalizeWebSearchMode
 import com.newoether.agora.data.normalizeWebSearchProvider
 import com.newoether.agora.viewmodel.GenerationContext
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import kotlinx.serialization.encodeToString
 import java.util.concurrent.TimeUnit
 
@@ -36,6 +39,18 @@ internal fun kagiSearchRequestBody(query: String, numResults: Int): String =
             put("query", query)
             put("workflow", "search")
             put("limit", numResults.coerceIn(1, 10))
+        }
+    )
+
+internal fun exaSearchRequestBody(query: String, numResults: Int, searchType: String): String =
+    Json.encodeToString(
+        buildJsonObject {
+            put("query", query)
+            put("numResults", numResults.coerceIn(1, 10))
+            put("type", searchType)
+            putJsonObject("contents") {
+                putJsonObject("text") { put("maxCharacters", 1000) }
+            }
         }
     )
 
@@ -85,13 +100,143 @@ internal fun normalizeKagiSearchResponse(
     }.toString()
 }
 
+internal fun normalizeExaSearchResponse(
+    responseBody: String,
+    query: String,
+    numResults: Int,
+): String {
+    val root = runCatching { Json.parseToJsonElement(responseBody) as? JsonObject }.getOrNull()
+    val searchResults = root?.get("results") as? JsonArray
+    if (searchResults == null || searchResults.isEmpty()) {
+        return buildJsonObject {
+            put("type", "web_search")
+            put("query", query)
+            put("error", "no_results")
+        }.toString()
+    }
+
+    val normalizedResults = buildJsonArray {
+        var added = 0
+        for (element in searchResults) {
+            if (added >= numResults.coerceIn(1, 10)) break
+            val result = element as? JsonObject ?: continue
+            val url = (result["url"] as? JsonPrimitive)?.content.orEmpty()
+            if (url.isBlank()) continue
+            add(
+                buildJsonObject {
+                    put("title", (result["title"] as? JsonPrimitive)?.content.orEmpty())
+                    put("url", url)
+                    put("description", (result["text"] as? JsonPrimitive)?.content.orEmpty().take(600))
+                    val score = (result["score"] as? JsonPrimitive)?.content?.toFloatOrNull()
+                    if (score != null) put("score", score)
+                }
+            )
+            added++
+        }
+    }
+    if (normalizedResults.isEmpty()) {
+        return buildJsonObject {
+            put("type", "web_search")
+            put("query", query)
+            put("error", "no_results")
+        }.toString()
+    }
+
+    return buildJsonObject {
+        put("type", "web_search")
+        put("query", query)
+        put("results", normalizedResults)
+    }.toString()
+}
+
 internal fun webSearchProviderDisplayName(provider: String): String = when (provider) {
     "kagi" -> "Kagi"
     "serper" -> "Serper"
     "tavily" -> "Tavily"
     "searxng" -> "SearXNG"
     "duckduckgo" -> "DuckDuckGo"
+    "exa" -> "Exa"
     else -> "Brave Search"
+}
+
+// ── Multi-backend fallback & depth modes (pure, JVM-testable) ───────────────
+
+/** Errors that justify trying the next search backend (technical failures + no results). */
+internal fun fallbackEligibleError(error: String?): Boolean = when (error) {
+    "no_response", "search_error", "captcha", "network_error", "no_results", "no_api_key" -> true
+    else -> false
+}
+
+/** Backends that work without an API key. */
+private val KEYLESS_BACKENDS = setOf("duckduckgo", "searxng")
+
+/** Preferred quality order when falling back (selected provider always comes first). */
+private val FALLBACK_PREFERENCE_ORDER = listOf("tavily", "exa", "brave", "serper", "kagi", "searxng", "duckduckgo")
+
+/**
+ * Computes the ordered list of backends to try: the selected provider first, then the
+ * other usable providers (API key present, or keyless) in preference order — DuckDuckGo
+ * as the universal last resort. Fallback disabled => only the selected provider.
+ */
+internal fun planBackendOrder(
+    selectedProvider: String,
+    apiKeys: Map<String, String>,
+    fallbackEnabled: Boolean,
+): List<String> {
+    val selected = normalizeWebSearchProvider(selectedProvider)
+    if (!fallbackEnabled) return listOf(selected)
+
+    val ordered = mutableListOf(selected)
+    FALLBACK_PREFERENCE_ORDER.forEach { candidate ->
+        if (candidate == selected || ordered.contains(candidate)) return@forEach
+        val usable = candidate in KEYLESS_BACKENDS || apiKeys[candidate].orEmpty().isNotBlank()
+        if (usable) ordered.add(candidate)
+    }
+    // Universal last resort: DuckDuckGo needs no key and must always be present.
+    if (!ordered.contains("duckduckgo")) ordered.add("duckduckgo")
+    return ordered
+}
+
+/** Tavily search_depth mapping: quick stays cheap, everything else keeps today's quality. */
+internal fun tavilySearchDepth(mode: String): String =
+    if (normalizeWebSearchMode(mode) == "quick") "basic" else "advanced"
+
+/** Exa search type mapping: quick => instant, deep => deep-lite (deep is costly), else auto. */
+internal fun exaSearchType(mode: String): String = when (normalizeWebSearchMode(mode)) {
+    "quick" -> "instant"
+    "deep" -> "deep-lite"
+    else -> "auto"
+}
+
+/** Hard ceiling for num_results in the current mode. */
+internal fun maxNumResultsForMode(mode: String): Int =
+    if (normalizeWebSearchMode(mode) == "quick") 3 else 10
+
+/** Default result count when the LLM does not request one explicitly. */
+internal fun defaultNumResultsForMode(mode: String, configured: Int): Int =
+    if (normalizeWebSearchMode(mode) == "deep") 10 else configured.coerceIn(1, 10)
+
+/** Reads the "error" field of a normalized tool JSON payload, null when absent/unparseable. */
+internal fun searchJsonError(toolJson: String): String? {
+    val root = runCatching { Json.parseToJsonElement(toolJson) as? JsonObject }.getOrNull() ?: return null
+    return (root["error"] as? JsonPrimitive)?.content
+}
+
+/**
+ * Stamps the normalized tool JSON with the backend that actually served the request
+ * (`provider_used`), plus `fallback: true` and the `attempted` list when earlier
+ * backends failed — so the LLM (and the user) can tell a fallback happened.
+ */
+internal fun annotateSearchJson(toolJson: String, providerUsed: String, attempted: List<String>): String {
+    val root = runCatching { Json.parseToJsonElement(toolJson) as? JsonObject }.getOrNull() ?: return toolJson
+    return buildJsonObject {
+        root.forEach { (key, value) -> put(key, value) }
+        put("provider_used", providerUsed)
+        if (attempted.isNotEmpty()) {
+            put("fallback", true)
+            putJsonArray("attempted") { attempted.forEach { add(JsonPrimitive(it)) } }
+        }
+    }.toString()
 }
 
 class WebSearchToolProvider : ToolProvider {
@@ -102,10 +247,15 @@ class WebSearchToolProvider : ToolProvider {
 
     override fun definitions(ctx: GenerationContext): List<ToolDefinition> {
         if (!ctx.webSearchEnabled) return emptyList()
+        val modeHint = when (normalizeWebSearchMode(ctx.webSearchMode)) {
+            "quick" -> " Answer with a single targeted search."
+            "deep" -> " Feel free to chain web_search and web_fetch calls to cross-check multiple sources."
+            else -> ""
+        }
         return listOf(
             ToolDefinition(function = ToolFunction(
                 name = "web_search",
-                description = "Search the web for current information. Use this to find facts, news, or data not in your training set.",
+                description = "Search the web for current information. Use this to find facts, news, or data not in your training set.$modeHint",
                 parameters = ToolParameters(
                     properties = mapOf(
                         "query" to ToolProperty("string", "The search query to execute."),
@@ -142,14 +292,62 @@ class WebSearchToolProvider : ToolProvider {
 
     override fun handles(name: String): Boolean = name in setOf("web_search", "web_fetch")
 
+    override fun executeEvents(
+        name: String,
+        arguments: String,
+        ctx: GenerationContext,
+    ): kotlinx.coroutines.flow.Flow<ToolExecutionEvent> = kotlinx.coroutines.flow.flow {
+        val text = execute(name, arguments, ctx)
+        // Publish citation candidates alongside the model-facing result so local search
+        // also feeds inline [n] chips and the sources sheet.
+        emit(
+            ToolExecutionEvent.Completed(
+                ToolExecutionResult(
+                    text = text,
+                    structuredContent = com.newoether.agora.model.ToolCitationPayload.fromToolResult(name, text),
+                ),
+            ),
+        )
+    }
+
     private fun executeWebSearch(arguments: String, ctx: GenerationContext): String {
         val argsStr = arguments.ifBlank { "{}" }
         val args = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(argsStr)
         val query = (args["query"] as? JsonPrimitive)?.content
             ?: return buildJsonObject { put("type", "web_search"); put("error", "no_query") }.toString()
-        val numResults = ((args["num_results"] as? JsonPrimitive)?.content?.toIntOrNull() ?: ctx.webSearchNumResults).coerceIn(1, 10)
-        val provider = normalizeWebSearchProvider(ctx.webSearchProvider)
 
+        val mode = normalizeWebSearchMode(ctx.webSearchMode)
+        val requestedNum = (args["num_results"] as? JsonPrimitive)?.content?.toIntOrNull()
+        val numResults = (requestedNum ?: defaultNumResultsForMode(mode, ctx.webSearchNumResults))
+            .coerceIn(1, maxNumResultsForMode(mode))
+
+        val order = planBackendOrder(ctx.webSearchProvider, ctx.webSearchApiKeys, ctx.webSearchFallbackEnabled)
+        val attempted = mutableListOf<String>()
+        var lastErrorJson: String? = null
+
+        for ((index, candidate) in order.withIndex()) {
+            val resultJson = executeSingleBackend(candidate, query, numResults, ctx)
+            val error = searchJsonError(resultJson)
+            if (error != null && fallbackEligibleError(error) && index < order.lastIndex) {
+                attempted += candidate
+                lastErrorJson = resultJson
+                continue
+            }
+            return annotateSearchJson(resultJson, candidate, attempted)
+        }
+        // Every backend failed: surface the last error, annotated with the full attempt chain.
+        val fallbackJson = lastErrorJson
+            ?: buildJsonObject { put("type", "web_search"); put("query", query); put("error", "search_error") }.toString()
+        return annotateSearchJson(fallbackJson, order.last(), attempted)
+    }
+
+    /** Executes one backend and returns its normalized tool JSON (error payloads included). */
+    private fun executeSingleBackend(
+        provider: String,
+        query: String,
+        numResults: Int,
+        ctx: GenerationContext,
+    ): String {
         return try {
             // DuckDuckGo is a scraper, not an API — handle it separately.
             if (provider == "duckduckgo") {
@@ -213,10 +411,19 @@ class WebSearchToolProvider : ToolProvider {
                         put("api_key", apiKey)
                         put("query", query)
                         put("max_results", numResults)
-                        put("search_depth", "advanced")
+                        put("search_depth", tavilySearchDepth(ctx.webSearchMode))
                         put("include_answer", true)
                     }),
                     emptyMap(),
+                    callTimeoutMillis = Constants.NETWORK_TOOL_TIMEOUT_MS,
+                )
+                "exa" -> HttpClient.post(
+                    "https://api.exa.ai/search",
+                    exaSearchRequestBody(query, numResults, exaSearchType(ctx.webSearchMode)),
+                    mapOf(
+                        "x-api-key" to apiKey,
+                        "Content-Type" to "application/json",
+                    ),
                     callTimeoutMillis = Constants.NETWORK_TOOL_TIMEOUT_MS,
                 )
                 "searxng" -> {
@@ -240,6 +447,9 @@ class WebSearchToolProvider : ToolProvider {
 
             if (provider == "kagi") {
                 return normalizeKagiSearchResponse(body, query, numResults)
+            }
+            if (provider == "exa") {
+                return normalizeExaSearchResponse(body, query, numResults)
             }
 
             val json: Map<String, kotlinx.serialization.json.JsonElement> = Json.decodeFromString(body)

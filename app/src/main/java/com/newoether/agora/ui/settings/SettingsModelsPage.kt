@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import com.newoether.agora.ui.components.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -59,11 +60,13 @@ import com.newoether.agora.util.noOpBringIntoView
 import com.newoether.agora.viewmodel.ChatViewModel
 
 // Shape constants matching SettingsGroup's per-position rounding.
-// Each encodes top-corners / bottom-corners for its place in the group.
-private val FullRounded   = RoundedCornerShape(24.dp)
-private val TopRounded    = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-private val BottomRounded = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-private val MidRounded    = RoundedCornerShape(5.dp)
+// Centralisées sur AgoraRadii.stackedShape (source unique) ; les trois
+// plates (Flat*) restent locales car elles prolongent à fleur le header
+// animé des groupes providers (fonctionnel, cf. SettingsModelProviderGroups).
+private val FullRounded   = com.newoether.agora.ui.ds.AgoraRadii.Lg
+private val TopRounded    = com.newoether.agora.ui.ds.AgoraRadii.stackedShape(0, 2)
+private val BottomRounded = com.newoether.agora.ui.ds.AgoraRadii.stackedShape(1, 2)
+private val MidRounded    = com.newoether.agora.ui.ds.AgoraRadii.GroupJoint
 internal val FlatShape     = RoundedCornerShape(0.dp)
 internal val FlatToBottom  = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
 internal val FiveBottom    = RoundedCornerShape(bottomStart = 5.dp, bottomEnd = 5.dp)
@@ -665,10 +668,7 @@ fun SettingsModelsPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                             },
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier
-                                .menuAnchor(
-                                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                                    enabled = true,
-                                )
+                                .menuAnchor()
                                 .fillMaxWidth(),
                         )
                         ExposedDropdownMenu(

@@ -110,9 +110,19 @@ class LlamaChatEngine(
     companion object {
         private const val TAG = "LlamaChatEngine"
 
+        @Volatile
+        var nativeAvailable: Boolean = false
+            private set
+
         init {
-            System.loadLibrary("c++_shared")
-            System.loadLibrary("agora_llama")
+            try {
+                System.loadLibrary("c++_shared")
+                System.loadLibrary("agora_llama")
+                nativeAvailable = true
+            } catch (_: Throwable) {
+                DebugLog.i(TAG, "Native llama library not available for LlamaChatEngine")
+                nativeAvailable = false
+            }
         }
     }
 
@@ -150,8 +160,12 @@ class LlamaChatEngine(
         nativeHandle != 0L && modelPath == path && nCtx == contextSize
 
     fun load(): Boolean {
+        if (!nativeAvailable) {
+            DebugLog.i(TAG, "Cannot load model: native llama library not available")
+            return false
+        }
         if (!File(modelPath).exists()) {
-            DebugLog.e(TAG, "Model file not found")
+            DebugLog.w(TAG, "Model file not found")
             return false
         }
         lock.writeLock().lock()

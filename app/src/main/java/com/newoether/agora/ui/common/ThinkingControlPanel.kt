@@ -40,11 +40,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
 import com.newoether.agora.model.ThinkingLevels
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraDurations
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private val BudgetToggleToSliderSpacing = 32.dp
+private val BudgetToggleToSliderSpacing = AgoraSpacing.Xxxl
 private val AdvancedChevronSize = 18.dp
 
 @Composable
@@ -94,9 +97,9 @@ fun ThinkingControlPanel(
                     painter = painterResource(id = R.drawable.neurology_24),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.padding(top = AgoraSpacing.Xxs)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.gen_thinking_enabled),
@@ -107,26 +110,26 @@ fun ThinkingControlPanel(
                         text = thinkingControlShortLabel(enabled, normalizedEffort, budgetEnabled, budgetTokens),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = AgoraSpacing.Xxs)
                     )
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                 Switch(checked = enabled, onCheckedChange = onEnabledChange)
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(AgoraSpacing.Xxxl))
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().alpha(if (sliderEnabled) 1f else 0.38f),
+            modifier = Modifier.fillMaxWidth().alpha(if (sliderEnabled) 1f else AgoraAlpha.Disabled),
             verticalAlignment = Alignment.Top
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.neurology_24),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.thinking_effort_label),
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp)
+                modifier = Modifier.padding(top = AgoraSpacing.Xxs)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -146,7 +149,7 @@ fun ThinkingControlPanel(
                     text = stringResource(R.string.thinking_effort_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = AgoraSpacing.Xs)
                 )
                 Slider(
                     value = sliderPosition,
@@ -166,7 +169,7 @@ fun ThinkingControlPanel(
                     },
                     valueRange = 0f..maxIndex.toFloat(),
                     steps = if (maxIndex > 0) maxIndex - 1 else 0,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = AgoraSpacing.Sm),
                     enabled = sliderEnabled
                 )
             }
@@ -175,16 +178,16 @@ fun ThinkingControlPanel(
         Spacer(modifier = Modifier.height(8.dp))
         val chevronRotation by animateFloatAsState(
             targetValue = if (showAdvanced) 180f else 0f,
-            animationSpec = if (animateSections) tween(400) else tween(0),
+            animationSpec = if (animateSections) tween(AgoraDurations.Medium) else tween(0),
             label = "advancedChevronRotation"
         )
         TextButton(onClick = { showAdvanced = !showAdvanced }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(if (showAdvanced) stringResource(R.string.thinking_advanced_hide) else stringResource(R.string.advanced_settings))
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(AgoraSpacing.Xs))
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
+                    contentDescription = if (showAdvanced) stringResource(R.string.thinking_advanced_hide) else stringResource(R.string.advanced_settings),
                     modifier = Modifier
                         .size(AdvancedChevronSize)
                         .rotate(chevronRotation)
@@ -198,7 +201,7 @@ fun ThinkingControlPanel(
                     .fillMaxWidth()
                     .alpha(if (enabled) 1f else 0.38f)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -207,9 +210,9 @@ fun ThinkingControlPanel(
                         painter = painterResource(id = R.drawable.neurology_24),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = AgoraSpacing.Xxs)
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.thinking_use_budget),
@@ -220,10 +223,10 @@ fun ThinkingControlPanel(
                             text = stringResource(R.string.thinking_budget_note),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp)
+                            modifier = Modifier.padding(top = AgoraSpacing.Xs)
                         )
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                     Switch(
                         checked = budgetEnabled,
                         onCheckedChange = if (enabled) { { checked ->
@@ -265,9 +268,9 @@ fun ThinkingControlPanel(
                                 painter = painterResource(id = R.drawable.neurology_24),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(top = 2.dp)
+                                modifier = Modifier.padding(top = AgoraSpacing.Xxs)
                             )
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
@@ -306,7 +309,7 @@ fun ThinkingControlPanel(
                                     },
                                     valueRange = 0f..(budgetPresets.size - 1).toFloat(),
                                     steps = budgetPresets.size - 2,
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(top = AgoraSpacing.Sm),
                                     enabled = enabled
                                 )
                             }

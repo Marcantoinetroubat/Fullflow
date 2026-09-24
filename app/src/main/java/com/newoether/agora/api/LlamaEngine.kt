@@ -8,9 +8,22 @@ object LlamaEngine {
 
     private var nativeHandle: Long = 0L
 
+    @Volatile
+    var nativeAvailable = false
+        private set
+
+    val isAvailable: Boolean
+        get() = nativeAvailable
+
     init {
-        System.loadLibrary("c++_shared")
-        System.loadLibrary("agora_llama")
+        try {
+            System.loadLibrary("c++_shared")
+            System.loadLibrary("agora_llama")
+            nativeAvailable = true
+        } catch (_: Throwable) {
+            DebugLog.i(TAG, "Native llama library not available on this device")
+            nativeAvailable = false
+        }
     }
 
     private external fun nativeInitializeBackends(nativeLibraryDir: String): Boolean
@@ -20,19 +33,27 @@ object LlamaEngine {
     private external fun nativeGetEmbeddingDim(handle: Long): Int
 
     internal fun initializeBackends(nativeLibraryDir: String): Boolean =
-        nativeInitializeBackends(nativeLibraryDir)
+        if (nativeAvailable) {
+            try {
+                nativeInitializeBackends(nativeLibraryDir)
+            } catch (_: Throwable) {
+                DebugLog.w(TAG, "Failed to initialize native llama backends")
+                false
+            }
+        } else false
 
     fun isModelReady(modelPath: String): Boolean {
-        return modelPath.isNotBlank() && File(modelPath).exists() && File(modelPath).length() > 0
+        return nativeAvailable && modelPath.isNotBlank() && File(modelPath).exists() && File(modelPath).length() > 0
     }
 
     suspend fun computeEmbedding(text: String, modelPath: String): FloatArray? {
+        if (!nativeAvailable) return null
         val results = computeEmbeddings(listOf(text), modelPath)
         return results.firstOrNull()
     }
 
     suspend fun computeEmbeddings(texts: List<String>, modelPath: String): List<FloatArray?> {
-        if (texts.isEmpty()) return emptyList()
+        if (!nativeAvailable || texts.isEmpty()) return texts.map { null }
         val start = System.currentTimeMillis()
         return LocalModelRuntime.runEmbedding(modelPath) {
             texts.mapIndexed { i, text ->
@@ -53,11 +74,12 @@ object LlamaEngine {
     }
 
     internal fun loadResident(modelPath: String): Boolean {
+        if (!nativeAvailable) return false
         check(nativeHandle == 0L) { "Embedding model already resident" }
         val start = System.currentTimeMillis()
         nativeHandle = nativeLoadModel(modelPath)
         if (nativeHandle == 0L) {
-            DebugLog.e(TAG, "Failed to load model (${System.currentTimeMillis() - start}ms)")
+            DebugLog.w(TAG, "Failed to load model (${System.currentTimeMillis() - start}ms)")
             return false
         }
         DebugLog.d(
@@ -68,6 +90,7 @@ object LlamaEngine {
     }
 
     internal fun unloadResident() {
+        if (!nativeAvailable) return
         val handle = nativeHandle
         nativeHandle = 0L
         if (handle != 0L) nativeFreeModel(handle)

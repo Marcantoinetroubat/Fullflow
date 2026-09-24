@@ -22,9 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
 import com.newoether.agora.model.OpenAiServiceTiers
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraSpacing
 import kotlin.math.roundToInt
 
 @Composable
@@ -56,10 +57,10 @@ fun OpenAiServiceTierControlPanel(
             ) {
                 Icon(
                     imageVector = Icons.Default.Speed,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.openai_service_tier_title),
                     tint = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.openai_service_tier_title),
@@ -70,32 +71,32 @@ fun OpenAiServiceTierControlPanel(
                         text = stringResource(R.string.openai_service_tier_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp),
+                        modifier = Modifier.padding(top = AgoraSpacing.Xxs),
                     )
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
                 Switch(
                     checked = enabled,
                     onCheckedChange = onEnabledChange,
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(AgoraSpacing.Xxxl))
         }
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .alpha(if (enabled) 1f else 0.38f),
+                .alpha(if (enabled) 1f else AgoraAlpha.Disabled),
             verticalAlignment = Alignment.Top,
         ) {
             Icon(
                 imageVector = Icons.Default.Speed,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.openai_service_tier_title),
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp),
+                modifier = Modifier.padding(top = AgoraSpacing.Xxs),
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AgoraSpacing.Lg))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -121,7 +122,7 @@ fun OpenAiServiceTierControlPanel(
                     text = stringResource(R.string.openai_service_tier_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = AgoraSpacing.Xs),
                 )
                 Slider(
                     value = sliderPosition,
@@ -145,7 +146,7 @@ fun OpenAiServiceTierControlPanel(
                     steps = OpenAiServiceTiers.values.size - 2,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp),
+                        .padding(top = AgoraSpacing.Sm),
                     enabled = enabled,
                 )
             }

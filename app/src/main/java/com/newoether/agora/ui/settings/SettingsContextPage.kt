@@ -11,13 +11,12 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
+import com.newoether.agora.ui.ds.AgoraAlpha
 import com.newoether.agora.data.modelAliasDisplayName
 import com.newoether.agora.data.modelDisplayName
 import com.newoether.agora.data.providerDisplayName
@@ -70,12 +69,12 @@ fun SettingsContextPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         LaunchedEffect(window) { sliderGate.reconcile(window) }
                         val draftIndex = sliderGate.displayed
                         val draft = presets[draftIndex.toInt().coerceIn(0, presets.lastIndex)]
-                        ContextSliderItem(
+                        com.newoether.agora.ui.ds.AgoraSliderRow(
                             icon = Icons.Default.Memory,
-                            label = stringResource(R.string.context_window),
+                            title = stringResource(R.string.context_window),
                             description = stringResource(R.string.context_window_desc),
-                            displayValue = ContextBudget.compactLabel(draft),
-                            sliderValue = draftIndex,
+                            valueLabel = ContextBudget.compactLabel(draft),
+                            value = draftIndex,
                             valueRange = 0f..presets.lastIndex.toFloat(),
                             steps = presets.size - 2,
                             onValueChange = sliderGate::updateFromGesture,
@@ -170,14 +169,14 @@ fun SettingsContextPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                 sliderGate.reconcile(thresholdPercent)
                             }
                             val draft = sliderGate.displayed
-                            ContextSliderItem(
+                            com.newoether.agora.ui.ds.AgoraSliderRow(
                                 icon = Icons.Default.Compress,
-                                label = stringResource(R.string.context_compact_threshold),
+                                title = stringResource(R.string.context_compact_threshold),
                                 description = stringResource(
                                     R.string.context_compact_threshold_desc,
                                 ),
-                                displayValue = "${draft.toInt()}%",
-                                sliderValue = draft,
+                                valueLabel = "${draft.toInt()}%",
+                                value = draft,
                                 valueRange = 50f..100f,
                                 steps = 0,
                                 onValueChange = { sliderGate.updateFromGesture(kotlin.math.round(it)) },
@@ -209,12 +208,12 @@ fun SettingsContextPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         }
                         LaunchedEffect(retainCount) { sliderGate.reconcile(retainCount) }
                         val draft = sliderGate.displayed
-                        ContextSliderItem(
+                        com.newoether.agora.ui.ds.AgoraSliderRow(
                             icon = Icons.Default.Memory,
-                            label = stringResource(R.string.context_compact_retain),
+                            title = stringResource(R.string.context_compact_retain),
                             description = stringResource(R.string.context_compact_retain_desc),
-                            displayValue = draft.toInt().toString(),
-                            sliderValue = draft,
+                            valueLabel = draft.toInt().toString(),
+                            value = draft,
                             valueRange = 0f..20f,
                             steps = 19,
                             onValueChange = sliderGate::updateFromGesture,
@@ -244,15 +243,11 @@ fun SettingsContextPage(viewModel: ChatViewModel, onBack: () -> Unit) {
     }
 
     if (modelDialog) {
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        com.newoether.agora.ui.ds.AgoraDialog(
+            title = stringResource(R.string.context_compact_select_model),
             onDismissRequest = { modelDialog = false },
-            title = {
-                Text(
-                    stringResource(R.string.context_compact_select_model),
-                    fontWeight = FontWeight.Bold,
-                )
-            },
+            confirmText = stringResource(R.string.provider_cancel),
+            onConfirm = { modelDialog = false },
             text = {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     item {
@@ -284,11 +279,6 @@ fun SettingsContextPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = { modelDialog = false }) {
-                    Text(stringResource(R.string.provider_cancel))
-                }
-            },
         )
     }
     if (promptDialog) {
@@ -315,78 +305,11 @@ private fun CompactModelItem(
                 Text(
                     it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint),
                 )
             }
         },
-        leadingContent = { RadioButton(selected = selected, onClick = onClick) },
-        modifier = Modifier.clickable(onClick = onClick),
+        leadingContent = { RadioButton(selected = selected, onClick = null) },
+        modifier = Modifier.clickable(role = androidx.compose.ui.semantics.Role.RadioButton, onClick = onClick),
     )
-}
-
-@Composable
-private fun ContextSliderItem(
-    icon: ImageVector,
-    label: String,
-    description: String,
-    displayValue: String,
-    sliderValue: Float,
-    valueRange: ClosedFloatingPointRange<Float>,
-    steps: Int,
-    onValueChange: (Float) -> Unit,
-    onValueChangeFinished: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp),
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = displayValue,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-                Slider(
-                    value = sliderValue,
-                    onValueChange = onValueChange,
-                    valueRange = valueRange,
-                    steps = steps,
-                    onValueChangeFinished = onValueChangeFinished,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                )
-            }
-        }
-    }
 }

@@ -103,6 +103,12 @@ internal fun rememberSmoothBottomSheetState(): SmoothBottomSheetState =
 /**
  * Agora's interruptible spring sheet shell.
  *
+ * Réservé à [com.newoether.agora.ui.chat.message.SegmentDetailSheet], seul
+ * consommateur restant : back-stack interne liste↔détail ([onBackRequest]) +
+ * coordination nested-scroll ([contentAtTop]) que M3 n'offre pas. Toute
+ * nouvelle bottom sheet doit utiliser [com.newoether.agora.ui.ds.AgoraBottomSheet]
+ * (`CitationSourcesBottomSheet` déjà migrée).
+ *
  * The caller owns only navigation, title, and content. This shell owns the dialog, dimming,
  * established anchors, drag interruption, nested-scroll handoff, and reduced-motion behavior.
  */
@@ -116,8 +122,9 @@ internal fun SmoothBottomSheet(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val motionPolicy = LocalAgoraMotionPolicy.current
-    val screenHeightPx =
-        LocalWindowInfo.current.containerSize.height.toFloat().coerceAtLeast(1f)
+    val screenHeightPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+        androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp.toPx().coerceAtLeast(1f)
+    }
     val coroutineScope = rememberCoroutineScope()
     val currentOnDismissRequest by rememberUpdatedState(onDismissRequest)
     val currentOnBackRequest by rememberUpdatedState(onBackRequest)

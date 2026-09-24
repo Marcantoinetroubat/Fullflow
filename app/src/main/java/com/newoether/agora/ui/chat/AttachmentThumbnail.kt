@@ -15,13 +15,15 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.newoether.agora.ui.chat.audio.FullFlowAudioController
 import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import com.newoether.agora.model.AttachmentItem
 import com.newoether.agora.model.AttachmentMeta
 import com.newoether.agora.ui.common.LocalAgoraHaptics
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraRadii
 import com.newoether.agora.util.AttachmentSourceReader
 import com.newoether.agora.util.Constants
 import kotlinx.coroutines.Dispatchers
@@ -94,8 +98,8 @@ fun FileThumbnail(
     if (isPdf) {
         Box(
             modifier = modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFE53935).copy(alpha = 0.15f)),
+                .clip(AgoraRadii.Xs)
+                .background(Color(0xFFE53935).copy(alpha = AgoraAlpha.Pressed)),
             contentAlignment = Alignment.Center
         ) {
             Text("PDF", style = MaterialTheme.typography.labelMedium, color = Color(0xFFE53935), fontWeight = FontWeight.SemiBold)
@@ -105,8 +109,8 @@ fun FileThumbnail(
             .ifEmpty { fallbackLabel }
         Box(
             modifier = modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+                .clip(AgoraRadii.Xs)
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = AgoraAlpha.Hint)),
             contentAlignment = Alignment.Center
         ) {
             Text(ext, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
@@ -141,7 +145,7 @@ fun AttachmentThumbnailItem(
     val scope = rememberCoroutineScope()
     val thumbModifier = modifier
         .size(120.dp, 90.dp)
-        .clip(RoundedCornerShape(8.dp))
+        .clip(AgoraRadii.Xs)
 
     if (unavailable) {
         Column(
@@ -182,7 +186,7 @@ fun AttachmentThumbnailItem(
                 (textContent != null || originalUri != null)
             val clickMod = if (canOpen) {
                 Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(AgoraRadii.Xs)
                     .clickable {
                         scope.launch {
                             val content = textContent ?: originalUri?.let {
@@ -200,8 +204,45 @@ fun AttachmentThumbnailItem(
             } else {
                 Modifier
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(72.dp).then(clickMod)) {
-                FileThumbnail(fileName = fileName, isPdf = false, modifier = Modifier.size(64.dp))
+            val docId = remember(fileName, originalUri) { "attach_${fileName ?: originalUri.orEmpty()}" }
+            val isDocPlaying = FullFlowAudioController.currentlyPlayingDocumentId == docId &&
+                FullFlowAudioController.isSpeakingDocument
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(72.dp)) {
+                Box(modifier = Modifier.size(64.dp)) {
+                    FileThumbnail(fileName = fileName, isPdf = false, modifier = Modifier.fillMaxSize().then(clickMod))
+                    if (textContent != null || originalUri != null) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(2.dp)
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(if (isDocPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f))
+                                .clickable {
+                                    if (isDocPlaying) {
+                                        FullFlowAudioController.stopDocument()
+                                    } else {
+                                        scope.launch {
+                                            val text = textContent ?: originalUri?.let {
+                                                readFileContent(context, it)
+                                            }
+                                            if (!text.isNullOrBlank()) {
+                                                FullFlowAudioController.playDocument(context, docId, text)
+                                            }
+                                        }
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                if (isDocPlaying) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = if (isDocPlaying) "Arrêter la lecture" else "Lire à haute voix",
+                                tint = if (isDocPlaying) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
                 if (showFileName && fileName != null) {
                     Text(fileName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
                 }
@@ -210,9 +251,46 @@ fun AttachmentThumbnailItem(
         "pdf" -> {
             val hasPages = pdfPages.isNotEmpty()
             val clickMod = if (hasPages && handlers.onPdfClick != null)
-                Modifier.clip(RoundedCornerShape(8.dp)).clickable { handlers.onPdfClick(pdfPages, 0) } else Modifier
+                Modifier.clip(AgoraRadii.Xs).clickable { handlers.onPdfClick(pdfPages, 0) } else Modifier
+            val pdfDocId = remember(fileName, originalUri) { "pdf_${fileName ?: originalUri.orEmpty()}" }
+            val isPdfPlaying = FullFlowAudioController.currentlyPlayingDocumentId == pdfDocId &&
+                FullFlowAudioController.isSpeakingDocument
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(72.dp)) {
-                FileThumbnail(fileName = null, isPdf = true, modifier = Modifier.size(64.dp).then(clickMod))
+                Box(modifier = Modifier.size(64.dp)) {
+                    FileThumbnail(fileName = null, isPdf = true, modifier = Modifier.fillMaxSize().then(clickMod))
+                    if (textContent != null || originalUri != null) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(2.dp)
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(if (isPdfPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f))
+                                .clickable {
+                                    if (isPdfPlaying) {
+                                        FullFlowAudioController.stopDocument()
+                                    } else {
+                                        scope.launch {
+                                            val text = textContent ?: originalUri?.let {
+                                                readFileContent(context, it)
+                                            }
+                                            if (!text.isNullOrBlank()) {
+                                                FullFlowAudioController.playDocument(context, pdfDocId, text)
+                                            }
+                                        }
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                if (isPdfPlaying) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = if (isPdfPlaying) "Arrêter la lecture" else "Lire à haute voix",
+                                tint = if (isPdfPlaying) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
                 if (showFileName && fileName != null) {
                     Text(fileName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
                 }
@@ -220,7 +298,7 @@ fun AttachmentThumbnailItem(
         }
         "video" -> {
             val clickMod = if (originalUri != null && handlers.onMediaClick != null)
-                Modifier.clip(RoundedCornerShape(8.dp)).clickable { handlers.onMediaClick(allMediaUrls, mediaIndex) } else Modifier
+                Modifier.clip(AgoraRadii.Xs).clickable { handlers.onMediaClick(allMediaUrls, mediaIndex) } else Modifier
             Box(modifier = clickMod) {
                 MessageMediaThumbnail(
                     imagePath = imagePath,
@@ -233,11 +311,10 @@ fun AttachmentThumbnailItem(
             if (imagePath.isNotEmpty()) {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(AgoraRadii.Xs)
                         .combinedClickable(
                             onClick = { handlers.onMediaClick?.invoke(allMediaUrls, mediaIndex) },
                             onLongClick = { haptics.longPress() },
-                            hapticFeedbackEnabled = false,
                         )
                 ) {
                     MessageMediaThumbnail(
@@ -248,11 +325,11 @@ fun AttachmentThumbnailItem(
             } else {
                 // No image data available (e.g. Claude import), show file-style thumbnail
                 val clickMod = if (fileName != null && handlers.onFileClick != null)
-                    Modifier.clip(RoundedCornerShape(8.dp)).clickable { handlers.onFileClick(fileName, textContent ?: "") } else Modifier
+                    Modifier.clip(AgoraRadii.Xs).clickable { handlers.onFileClick(fileName, textContent ?: "") } else Modifier
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(72.dp)) {
                     Box(
                         modifier = Modifier.size(64.dp).then(clickMod)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(AgoraRadii.Xs)
                             .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
                         contentAlignment = Alignment.Center
                     ) {

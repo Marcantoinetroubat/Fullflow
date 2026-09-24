@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.newoether.agora.R
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.sandbox.openSandboxRoot
 import com.newoether.agora.sandbox.SandboxManager
 import com.newoether.agora.sandbox.SandboxSharedStorageAccess
@@ -190,16 +191,16 @@ fun SettingsSandboxPage(
                                     Column {
                                         Text(stringResource(R.string.sandbox_not_installed), color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         if (installingRootfs) {
-                                            Spacer(Modifier.height(8.dp))
+                                            Spacer(Modifier.height(AgoraSpacing.Sm))
                                             val p = downloadProgress
                                             if (p != null) {
-                                                LinearProgressIndicator(progress = { p }, modifier = Modifier.fillMaxWidth().height(4.dp))
+                                                LinearProgressIndicator(progress = { p }, modifier = Modifier.fillMaxWidth().height(AgoraSpacing.Xs))
                                             } else {
                                                 MotionAwareLinearProgressIndicator(
-                                                    modifier = Modifier.fillMaxWidth().height(4.dp),
+                                                    modifier = Modifier.fillMaxWidth().height(AgoraSpacing.Xs),
                                                 )
                                             }
-                                            Spacer(Modifier.height(4.dp))
+                                            Spacer(Modifier.height(AgoraSpacing.Xs))
                                             Text(
                                                 if (p != null) stringResource(R.string.sandbox_downloading_rootfs, (p * 100).toInt())
                                                 else stringResource(R.string.sandbox_extracting_rootfs),
@@ -208,14 +209,14 @@ fun SettingsSandboxPage(
                                             )
                                         }
                                         installError?.let { err ->
-                                            Spacer(Modifier.height(8.dp))
+                                            Spacer(Modifier.height(AgoraSpacing.Sm))
                                             Surface(
                                                 shape = RoundedCornerShape(8.dp),
                                                 color = MaterialTheme.colorScheme.errorContainer
                                             ) {
                                                 Text(
                                                     err,
-                                                    modifier = Modifier.padding(12.dp),
+                                                    modifier = Modifier.padding(AgoraSpacing.Md),
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = MaterialTheme.colorScheme.onErrorContainer
                                                 )
@@ -254,10 +255,10 @@ fun SettingsSandboxPage(
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             LinearProgressIndicator(
                                                 progress = { diskUsageProgress },
-                                                modifier = Modifier.weight(0.3f).height(6.dp),
+                                                modifier = Modifier.weight(0.3f).height(AgoraSpacing.Sm),
                                                 trackColor = MaterialTheme.colorScheme.surfaceVariant
                                             )
-                                            Spacer(Modifier.width(10.dp))
+                                            Spacer(Modifier.width(AgoraSpacing.Md))
                                             Text(
                                                 if (diskUsageMB < 1000) stringResource(R.string.sandbox_disk_usage_mb, diskUsageMB.coerceAtLeast(1))
                                                 else stringResource(R.string.sandbox_disk_usage_gb, diskUsageMB / 1024f),
@@ -265,7 +266,7 @@ fun SettingsSandboxPage(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
-                                        Spacer(Modifier.height(2.dp))
+                                        Spacer(Modifier.height(AgoraSpacing.Xxs))
                                         Text(
                                             stringResource(R.string.sandbox_dashboard_summary, pkgCount),
                                             style = MaterialTheme.typography.bodySmall,
@@ -422,7 +423,7 @@ fun SettingsSandboxPage(
                     // ═══ Install Packages ═══
                     item {
                         SettingsGroup(title = stringResource(R.string.sandbox_install_packages), items = listOf({
-                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                            Column(modifier = Modifier.padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Md)) {
                                 // Input row
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                     OutlinedTextField(
@@ -431,10 +432,10 @@ fun SettingsSandboxPage(
                                         label = { Text(stringResource(R.string.sandbox_package_name)) },
                                         placeholder = { Text(stringResource(R.string.sandbox_package_placeholder)) },
                                         singleLine = true,
-                                        shape = RoundedCornerShape(16.dp),
+                                        shape = RoundedCornerShape(8.dp),
                                         modifier = Modifier.weight(1f)
                                     )
-                                    Spacer(Modifier.width(8.dp))
+                                    Spacer(Modifier.width(AgoraSpacing.Sm))
                                     val installDone = installPkg.isNotBlank() && lastInstallResult != null && !isBusy
                                     val btnBgColor by animateColorAsState(
                                         targetValue = when {
@@ -457,14 +458,14 @@ fun SettingsSandboxPage(
                                     Button(
                                         onClick = { if (installPkg.isNotBlank() && !isBusy && lastInstallResult == null) installPackage(installPkg.trim()) },
                                         enabled = true,
-                                        shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp, topEnd = 28.dp, bottomEnd = 28.dp),
+                                        shape = RoundedCornerShape(8.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = btnBgColor,
                                             contentColor = btnContentColor,
                                             disabledContainerColor = btnBgColor,
                                             disabledContentColor = btnContentColor
                                         ),
-                                        modifier = Modifier.height(56.dp).widthIn(min = 110.dp).offset(y = 4.dp)
+                                        modifier = Modifier.height(56.dp).widthIn(min = 110.dp).offset(y = AgoraSpacing.Xs)
                                     ) {
                                         if (isBusy) {
                                             CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.5.dp, color = MaterialTheme.colorScheme.primary)
@@ -503,15 +504,15 @@ fun SettingsSandboxPage(
                                     }
                                     val terminalFg = MaterialTheme.colorScheme.onSurface
                                     Surface(
-                                        shape = RoundedCornerShape(8.dp),
+                                        shape = RoundedCornerShape(16.dp),
                                         color = MaterialTheme.colorScheme.surface,
-                                        tonalElevation = 4.dp,
-                                        modifier = Modifier.padding(top = 16.dp).fillMaxWidth().height(260.dp)
+                                        tonalElevation = AgoraSpacing.Xs,
+                                        modifier = Modifier.padding(top = AgoraSpacing.Lg).fillMaxWidth().height(260.dp)
                                     ) {
                                         SelectionContainer {
                                             Text(
                                                 terminalOutput,
-                                                modifier = Modifier.padding(12.dp).fillMaxWidth()
+                                                modifier = Modifier.padding(AgoraSpacing.Md).fillMaxWidth()
                                                     .verticalScroll(termScroll)
                                                     .nestedScroll(object : NestedScrollConnection {
                                                         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset = available
@@ -529,16 +530,16 @@ fun SettingsSandboxPage(
                                 }
 
                                 // Quick install chips
-                                Spacer(Modifier.height(16.dp))
+                                Spacer(Modifier.height(AgoraSpacing.Lg))
                                 Text(
                                     stringResource(R.string.sandbox_quick_install) + ":",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Spacer(Modifier.height(4.dp))
+                                Spacer(Modifier.height(AgoraSpacing.Xs))
                                 @OptIn(ExperimentalLayoutApi::class)
                                 FlowRow(
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(AgoraSpacing.Sm),
                                     verticalArrangement = Arrangement.spacedBy(0.dp)
                                 ) {
                                     quickPkgs.forEach { pkg ->
@@ -561,20 +562,20 @@ fun SettingsSandboxPage(
                             text = stringResource(R.string.sandbox_installed_fmt, pkgCount),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                            modifier = Modifier.padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Md)
                         )
                     }
                     // Each package as its own LazyColumn item — avoids composing all
                     // packages in a single frame when the list is large.
                     when {
                         backendPackagesLoading -> item(key = "loading") {
-                            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(Modifier.size(20.dp))
+                            Box(Modifier.fillMaxWidth().padding(AgoraSpacing.Lg), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(Modifier.size(AgoraSpacing.Xl))
                             }
                         }
                         backendPackages.isEmpty() -> item(key = "empty") {
                             Surface(
-                                shape = RoundedCornerShape(24.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 color = MaterialTheme.colorScheme.surface,
                                 tonalElevation = 1.dp,
                                 modifier = Modifier.fillMaxWidth()
@@ -594,25 +595,25 @@ fun SettingsSandboxPage(
                             val isFirst = idx == 0
                             val isLast = idx == backendPackages.lastIndex
                             val shape = when {
-                                backendPackages.size == 1 -> RoundedCornerShape(24.dp)
-                                isFirst -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-                                isLast -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                                backendPackages.size == 1 -> RoundedCornerShape(16.dp)
+                                isFirst -> RoundedCornerShape(8.dp)
+                                isLast -> RoundedCornerShape(8.dp)
                                 else -> RoundedCornerShape(5.dp)
                             }
                             Surface(
                                 shape = shape,
                                 color = MaterialTheme.colorScheme.surface,
                                 tonalElevation = 1.dp,
-                                modifier = Modifier.fillMaxWidth().then(if (idx > 0) Modifier.padding(top = 2.dp) else Modifier)
+                                modifier = Modifier.fillMaxWidth().then(if (idx > 0) Modifier.padding(top = AgoraSpacing.Xxs) else Modifier)
                             ) {
                                 SettingsItem(
                                     headlineContent = {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Text(pkg.name, fontWeight = FontWeight.Medium)
                                             if (pkg.version.isNotBlank()) {
-                                                Spacer(Modifier.width(6.dp))
-                                                Surface(shape = RoundedCornerShape(3.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
-                                                    Text("v${pkg.version}", Modifier.padding(horizontal = 4.dp, vertical = 1.dp), maxLines = 1,
+                                                Spacer(Modifier.width(AgoraSpacing.Sm))
+                                                Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+                                                    Text("v${pkg.version}", Modifier.padding(horizontal = AgoraSpacing.Xs, vertical = 1.dp), maxLines = 1,
                                                         style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                                                 }
                                             }
@@ -623,8 +624,8 @@ fun SettingsSandboxPage(
                                     },
                                     leadingContent = { Icon(Icons.Default.Inventory2, null, tint = MaterialTheme.colorScheme.primary) },
                                     trailingContent = {
-                                        IconButton(onClick = { deleteConfirm = pkg.name }, enabled = !isBusy, modifier = Modifier.size(32.dp)) {
-                                            Icon(Icons.Default.Close, stringResource(R.string.sandbox_remove_content_desc), modifier = Modifier.size(16.dp))
+                                        IconButton(onClick = { deleteConfirm = pkg.name }, enabled = !isBusy, modifier = Modifier.size(48.dp)) {
+                                            Icon(Icons.Default.Close, stringResource(R.string.sandbox_remove_content_desc), modifier = Modifier.size(AgoraSpacing.Xxl))
                                         }
                                     }
                                 )
@@ -634,7 +635,7 @@ fun SettingsSandboxPage(
 
                     // ═══ Danger Zone ═══
                     item {
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(AgoraSpacing.Xxl))
                         SettingsGroup(bottomPadding = 0.dp, title = stringResource(R.string.sandbox_danger_zone), items = listOf({
                             SettingsItem(
                                 headlineContent = {
@@ -660,7 +661,7 @@ fun SettingsSandboxPage(
                                 modifier = Modifier.clickable { resetConfirm = true }
                             )
                         }))
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(AgoraSpacing.Lg))
                     }
 
                     // Doc FAB clearance

@@ -54,6 +54,9 @@ import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
 import com.newoether.agora.automation.hasSchedule
 import com.newoether.agora.data.local.TaskEntity
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraRadii
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.settings.CollapsingSettingsLazyScaffold
 import com.newoether.agora.ui.settings.GuardedAnimatedContent
 import com.newoether.agora.ui.settings.SettingsGroup
@@ -238,7 +241,7 @@ private fun TasksListPage(
             item(key = "tasks_empty") {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = stackedShape(0, 2),
+                    shape = AgoraRadii.stackedShape(0, 2),
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 1.dp,
                 ) {
@@ -252,20 +255,20 @@ private fun TasksListPage(
                         supportingContent = {
                             Text(
                                 stringResource(R.string.task_empty_desc),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint),
                             )
                         },
                         leadingContent = {
                             Icon(
                                 Icons.Default.Repeat,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint),
                             )
                         },
                         modifier = Modifier.heightIn(min = 64.dp),
                     )
                 }
-                Spacer(Modifier.height(STACK_GAP))
+                Spacer(Modifier.height(AgoraSpacing.Xxs))
             }
         } else {
             itemsIndexed(tasks, key = { _, task -> task.id }) { index, task ->
@@ -278,18 +281,18 @@ private fun TasksListPage(
                     isRunning = task.id in running,
                     executionsLoaded = executions != null,
                     lastRunAt = executions?.firstOrNull()?.timestamp?.takeIf { it > 0L },
-                    shape = stackedShape(index, totalRows),
+                    shape = AgoraRadii.stackedShape(index, totalRows),
                     onClick = { onOpenTask(task) },
                     onRun = { viewModel.runTaskNow(task) },
                     onToggleEnabled = { enabled -> viewModel.saveTask(task.copy(enabled = enabled)) },
                     onDelete = { pendingDelete = task },
                 )
-                Spacer(Modifier.height(STACK_GAP))
+                Spacer(Modifier.height(AgoraSpacing.Xxs))
             }
         }
         item(key = "new_automation") {
             NewAutomationRow(
-                shape = stackedShape(if (tasks.isEmpty()) 1 else tasks.size, if (tasks.isEmpty()) 2 else totalRows),
+                shape = AgoraRadii.stackedShape(if (tasks.isEmpty()) 1 else tasks.size, if (tasks.isEmpty()) 2 else totalRows),
                 onClick = onNewTask,
             )
         }
@@ -497,20 +500,6 @@ private fun NewAutomationRow(
         }
     }
 }
-
-/**
- * Corner treatment for a vertically stacked list of cards — identical to what [SettingsGroup]
- * applies to its items (24dp on the outer edges, 5dp where two cards meet, 2dp between them),
- * so task rows and execution rows read as the same component as every settings card.
- */
-internal fun stackedShape(index: Int, count: Int): RoundedCornerShape = when {
-    count <= 1 -> RoundedCornerShape(24.dp)
-    index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-    index == count - 1 -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-    else -> RoundedCornerShape(5.dp)
-}
-
-internal val STACK_GAP = 2.dp
 
 internal fun formatTaskCountdown(remainingMs: Long): String {
     val clampedMs = remainingMs.coerceAtLeast(0L)

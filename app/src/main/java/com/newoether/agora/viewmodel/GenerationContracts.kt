@@ -70,11 +70,17 @@ data class GenerationContext(
     val webSearchProvider: String = "duckduckgo",
     val webSearchNumResults: Int = 5,
     val webSearchBaseUrl: String = "",
+    /** Multi-backend fallback: on technical failure or empty results, try the next
+     *  configured search backend (DuckDuckGo last resort). */
+    val webSearchFallbackEnabled: Boolean = true,
+    /** Search depth mode: "quick" | "adaptive" | "deep". */
+    val webSearchMode: String = "adaptive",
     val imageGenEnabled: Boolean = false,
     val imageGenApiKey: String = "",
     val imageGenBaseUrl: String = "",
     val imageGenModel: String = "gpt-image-1",
     val imageGenSize: String = "1024x1024",
+    val videoGenEnabled: Boolean = false,
     val automationToolsEnabled: Boolean = false,
     /** Workers use WorkManager's foreground execution instead of starting our service. */
     val foregroundServiceManagedExternally: Boolean = false,
@@ -92,7 +98,11 @@ data class GenerationContext(
     val transcriptionBaseUrl: String? = null,
     /** Wall-clock budget for a single tool execution; downgrades a blocking tool from a
      *  permanent generation hang to a recoverable tool error (#49). */
-    val toolTimeoutMs: Long = Constants.TOOL_EXECUTION_TIMEOUT_MS
+    val toolTimeoutMs: Long = Constants.TOOL_EXECUTION_TIMEOUT_MS,
+    /** Magic Wand whitelist: connector names (DRIVE, GITHUB, …) the deep model may call
+     *  this generation. Empty = wand tools off. Names are provider-neutral strings so the
+     *  generation pipeline never depends on the wand package. */
+    val wandConnections: Set<String> = emptySet(),
 )
 
 /** Frozen automatic-Compact policy and provider access captured with one generation. */

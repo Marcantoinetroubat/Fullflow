@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.newoether.agora.ui.ds.AgoraRadii
 import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -79,7 +79,7 @@ fun AnimatedActionFab(
     ) {
         FloatingActionButton(
             onClick = { if (enabled) onClick() },
-            shape = RoundedCornerShape(50),
+            shape = AgoraRadii.Pill,
             containerColor = if (enabled) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
@@ -109,7 +109,7 @@ fun AnimatedActionFab(
                         color = LocalContentColor.current,
                     )
                 } else {
-                    Icon(icon, contentDescription = null, modifier = Modifier.scale(contentScale))
+                    Icon(icon, contentDescription = label, modifier = Modifier.scale(contentScale))
                 }
                 Spacer(Modifier.width(spacerWidth))
                 Text(label, maxLines = 1, modifier = Modifier.scale(contentScale))

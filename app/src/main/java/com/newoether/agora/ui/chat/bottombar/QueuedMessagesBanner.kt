@@ -66,11 +66,11 @@ internal fun QueuedMessageRow(
                 )
                 Spacer(Modifier.width(4.dp))
             }
-            IconButton(onClick = onRemove, modifier = Modifier.size(36.dp)) {
+            IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = stringResource(R.string.remove),
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

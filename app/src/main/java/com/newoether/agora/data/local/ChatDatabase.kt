@@ -20,6 +20,12 @@ import com.newoether.agora.data.local.migration.MIGRATION_27_28
 import com.newoether.agora.data.local.migration.MIGRATION_28_29
 import com.newoether.agora.data.local.migration.MIGRATION_29_30
 import com.newoether.agora.data.local.migration.MIGRATION_30_31
+import com.newoether.agora.data.local.migration.MIGRATION_31_32
+import com.newoether.agora.data.local.migration.MIGRATION_32_33
+import com.newoether.agora.data.local.migration.MIGRATION_33_34
+import com.newoether.agora.studio.agent.db.AgentDao
+import com.newoether.agora.studio.agent.db.AgentEntity
+import com.newoether.agora.studio.agent.db.PipelineEntity
 
 @Database(
     entities = [
@@ -35,6 +41,15 @@ import com.newoether.agora.data.local.migration.MIGRATION_30_31
         MaintenanceDebtEntity::class,
         SemanticIndexLedgerEntity::class,
         SemanticIndexWorkEntity::class,
+        NoteEntity::class,
+        ObsidianTaskEntity::class,
+        NoteEmbeddingEntity::class,
+        VoiceMemoEntity::class,
+        BrainItemEntity::class,
+        BrainChunkEntity::class,
+        MessageCitationEntity::class,
+        AgentEntity::class,
+        PipelineEntity::class,
     ],
     version = ChatDatabase.CURRENT_VERSION,
     exportSchema = true
@@ -43,9 +58,17 @@ abstract class ChatDatabase : RoomDatabase() {
     abstract fun chatDao(): ChatDao
     abstract fun maintenanceDebtDao(): MaintenanceDebtDao
     abstract fun semanticIndexDao(): SemanticIndexDao
+    abstract fun noteDao(): NoteDao
+    abstract fun obsidianTaskDao(): ObsidianTaskDao
+    abstract fun noteEmbeddingDao(): NoteEmbeddingDao
+    abstract fun voiceMemoDao(): VoiceMemoDao
+    abstract fun brainItemDao(): BrainItemDao
+    abstract fun brainChunkDao(): BrainChunkDao
+    abstract fun messageCitationDao(): MessageCitationDao
+    abstract fun agentDao(): AgentDao
 
     companion object {
-        const val CURRENT_VERSION = 31
+        const val CURRENT_VERSION = 34
         const val DB_NAME = "agora_db"
 
         val ALL_MIGRATIONS = listOf(
@@ -189,6 +212,9 @@ abstract class ChatDatabase : RoomDatabase() {
             MIGRATION_28_29,
             MIGRATION_29_30,
             MIGRATION_30_31,
+            MIGRATION_31_32,
+            MIGRATION_32_33,
+            MIGRATION_33_34,
         )
 
         fun inspectCompatibility(context: Context): DatabaseCompatibility {

@@ -153,6 +153,8 @@ internal class MessageGenerationController(
     private val pauseConversationTasks: suspend (String) -> Unit = {},
 ) {
     private val titleGenerator = ConversationTitleGenerator(convRepo, settings, providerRegistry)
+    private val backgroundGenerator = ConversationBackgroundGenerator(appContext, convRepo, settings, providerRegistry)
+    private val podcastGenerator = ConversationPodcastGenerator(appContext, convRepo, settings, providerRegistry)
     private val contextCompactor = ContextCompactor(
         conversations = convRepo,
         generationErrorFormatter = { raw ->
@@ -849,6 +851,50 @@ internal class MessageGenerationController(
                     if (settings.titleGenerationNotificationsEnabled.value) {
                         onSnackbarSuspend(appContext.getString(R.string.snackbar_title_error))
                     }
+                }
+            }
+        }
+    }
+
+    fun generateBackground(conversationId: String) {
+        viewModelScope.launch {
+            settings.awaitInitialLoad()
+            onSnackbarSuspend(appContext.getString(R.string.snackbar_generating_background))
+            when (val res = backgroundGenerator.generateAndPersist(conversationId)) {
+                is ConversationBackgroundGenerator.Result.Success -> {
+                    onSnackbarSuspend(appContext.getString(R.string.snackbar_background_generated))
+                }
+                is ConversationBackgroundGenerator.Result.Failure -> {
+                    onSnackbarSuspend(res.reason.ifBlank { appContext.getString(R.string.snackbar_background_error) })
+                }
+            }
+        }
+    }
+
+    fun removeBackground(conversationId: String) {
+        viewModelScope.launch {
+            backgroundGenerator.removeBackground(conversationId)
+            onSnackbarSuspend(appContext.getString(R.string.snackbar_background_removed))
+        }
+    }
+
+    fun generatePodcast(conversationId: String) {
+        viewModelScope.launch {
+            settings.awaitInitialLoad()
+            onSnackbarSuspend(appContext.getString(R.string.snackbar_generating_podcast))
+            when (val res = podcastGenerator.generateAndPersist(conversationId)) {
+                is ConversationPodcastGenerator.Result.Success -> {
+                    onSnackbarSuspend(appContext.getString(R.string.snackbar_podcast_generated))
+                    if (res.audioPath.isNotBlank()) {
+                        com.newoether.agora.ui.chat.audio.FullFlowAudioController.playDocument(
+                            context = appContext,
+                            docId = "podcast_$conversationId",
+                            text = res.script,
+                        )
+                    }
+                }
+                is ConversationPodcastGenerator.Result.Failure -> {
+                    onSnackbarSuspend(res.reason.ifBlank { appContext.getString(R.string.snackbar_podcast_error) })
                 }
             }
         }

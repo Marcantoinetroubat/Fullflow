@@ -31,11 +31,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -156,7 +159,7 @@ internal fun ChatDrawerContent(
     val motionPolicy = LocalAgoraMotionPolicy.current
     val focusManager = LocalFocusManager.current
     val density = LocalDensity.current
-    val windowHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
+    val windowHeightPx = with(density) { androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
     val conversationList by viewModel.conversations.collectAsState()
     val conversations = conversationList.orEmpty()
@@ -285,7 +288,7 @@ internal fun ChatDrawerContent(
                                 onOpenTasks()
                                 scope.launch { onRequestClose() }
                             },
-                            modifier = Modifier.fillMaxWidth().height(42.dp),
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
                             shape = CircleShape
                         ) {
                             Icon(Icons.Default.Repeat, null, modifier = Modifier.size(20.dp))
@@ -316,7 +319,7 @@ internal fun ChatDrawerContent(
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth().height(42.dp),
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
                             enabled = true,
                             shape = CircleShape,
                             colors = ButtonDefaults.buttonColors(
@@ -409,7 +412,6 @@ internal fun ChatDrawerContent(
                                                 }
                                                 .combinedClickable(
                                                     enabled = !isSwitching,
-                                                    hapticFeedbackEnabled = false,
                                                     onClick = {
                                                         viewModel.selectConversation(conversation.id)
                                                         scope.launch {
@@ -536,6 +538,38 @@ internal fun ChatDrawerContent(
                                                 }
                                             )
                                             DropdownMenuItem(
+                                                text = {
+                                                    Text(stringResource(R.string.generate_background))
+                                                },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        Icons.Default.Wallpaper,
+                                                        contentDescription = null,
+                                                    )
+                                                },
+                                                enabled = menuEnabled,
+                                                onClick = {
+                                                    showMenu = false
+                                                    viewModel.generateBackground(conversation.id)
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(stringResource(R.string.generate_podcast))
+                                                },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        Icons.Default.GraphicEq,
+                                                        contentDescription = null,
+                                                    )
+                                                },
+                                                enabled = menuEnabled,
+                                                onClick = {
+                                                    showMenu = false
+                                                    viewModel.generatePodcast(conversation.id)
+                                                }
+                                            )
+                                            DropdownMenuItem(
                                                 text = { Text(stringResource(R.string.rename)) },
                                                 leadingIcon = {
                                                     Icon(
@@ -617,7 +651,8 @@ internal fun ChatDrawerContent(
                             ) {
                                 Text(
                                     stringResource(R.string.search_no_results),
-                                    modifier = Modifier.padding(vertical = 24.dp),
+                                    modifier = Modifier.padding(vertical = AgoraSpacing.Xxl)
+                                        .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite },
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
@@ -672,7 +707,7 @@ internal fun ChatDrawerContent(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(42.dp)
+                    .height(48.dp)
                     .onGloballyPositioned { coords ->
                         val buttonTopPx = coords.positionInWindow().y
                         onSettingsButtonTop((windowHeightPx - buttonTopPx) / density.density)

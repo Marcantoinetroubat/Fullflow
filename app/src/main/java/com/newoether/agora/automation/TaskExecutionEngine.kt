@@ -338,7 +338,10 @@ class TaskExecutionEngine(
         skillManager = skillManager,
         context = appContext,
         sandboxFactory = sandboxFactory,
-        additionalToolProviders = listOf(mcpToolProvider),
+        additionalToolProviders = listOf(
+            mcpToolProvider,
+            com.newoether.agora.wand.WandConnectionToolProvider(mcpToolProvider.registry),
+        ),
         customProviders = { settings.customProviders.value },
     ).also {
         // Foreground Task/Loop executions share the exact same prompt and session trust state as

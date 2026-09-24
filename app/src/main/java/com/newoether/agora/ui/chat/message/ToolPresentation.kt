@@ -41,6 +41,8 @@ internal enum class ToolKind {
     FILE_GREP,
     IMAGE_VIEW,
     IMAGE_GENERATE,
+    VIDEO_GENERATE,
+    PODCAST_GENERATE,
     TASK_CREATE,
     TASK_LIST,
     TASK_DELETE,
@@ -217,8 +219,12 @@ internal object ToolPresentationResolver {
         "file_grep" -> ToolKind.FILE_GREP
         "view_image" -> ToolKind.IMAGE_VIEW
         "generate_image" -> ToolKind.IMAGE_GENERATE
+        "generate_video" -> ToolKind.VIDEO_GENERATE
+        "generate_podcast" -> ToolKind.PODCAST_GENERATE
         "create_task" -> ToolKind.TASK_CREATE
         "list_tasks" -> ToolKind.TASK_LIST
+        "list_obsidian_tasks" -> ToolKind.TASK_LIST
+        "toggle_obsidian_task" -> ToolKind.TASK_LIST
         "delete_task" -> ToolKind.TASK_DELETE
         "start_loop" -> ToolKind.LOOP_START
         "stop_loop" -> ToolKind.LOOP_STOP
@@ -321,7 +327,9 @@ internal object ToolPresentationResolver {
         ToolKind.FILE_GLOB,
         ToolKind.FILE_GREP -> arguments.string("pattern")
             ?: result.string("pattern")
-        ToolKind.IMAGE_GENERATE -> arguments.string("prompt")
+        ToolKind.IMAGE_GENERATE,
+        ToolKind.VIDEO_GENERATE -> arguments.string("prompt")
+        ToolKind.PODCAST_GENERATE -> arguments.string("topic")
         ToolKind.TASK_CREATE -> arguments.string("name")
         ToolKind.TASK_DELETE -> arguments.string("id_or_name")
             ?: arguments.string("name")

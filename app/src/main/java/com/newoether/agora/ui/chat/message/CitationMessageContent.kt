@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,8 +71,9 @@ import com.newoether.agora.R
 import com.newoether.agora.model.CitationPolicy
 import com.newoether.agora.model.CitationRecord
 import com.newoether.agora.ui.chat.caseInsensitiveMatchRanges
-import com.newoether.agora.ui.components.SmoothBottomSheet
-import com.newoether.agora.ui.components.rememberSmoothBottomSheetState
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraBottomSheet
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.ui.theme.ChatType
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
@@ -117,6 +117,9 @@ internal data class CitationInlineMarker(
         get() = (sources.size - 1).coerceAtLeast(0)
     val displayLabel: String
         get() = if (additionalCount > 0) "$label +$additionalCount" else label
+    /** Perplexity-style numbered chip shown inline in the answer text. */
+    val chipLabel: String
+        get() = number.toString()
 }
 
 internal fun citationInlineAppearanceKey(marker: CitationInlineMarker): String =
@@ -590,7 +593,7 @@ internal fun CitationInlineContentHost(
             .takeIf { it > 0 }
             ?.let { "+$it" }
         val primaryTextWidthPx = textMeasurer.measure(
-            text = marker.label,
+            text = marker.chipLabel,
             style = inlineTextStyle,
             maxLines = 1,
         ).size.width
@@ -634,7 +637,7 @@ internal fun CitationInlineContentHost(
                 )
             }
             CitationInlineCapsule(
-                primaryText = marker.label,
+                primaryText = marker.chipLabel,
                 additionalCount = marker.additionalCount,
                 textStyle = inlineTextStyle,
                 animationKey = appearanceKey,
@@ -673,7 +676,7 @@ private fun CitationInlineCapsule(
                     sharedDrawAlpha = sharedDrawAlpha,
                 ),
             )
-            .clip(RoundedCornerShape(50))
+            .clip(CircleShape)
             .background(citationCapsuleBackgroundColor())
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) { contentDescription = accessibilityLabel }
@@ -739,7 +742,7 @@ internal fun CitationSourcesSummaryCapsule(
         modifier = modifier
             .onGloballyPositioned { coordinates = it }
             .heightIn(min = CITATION_SOURCES_SUMMARY_MIN_HEIGHT_DP.dp)
-            .clip(RoundedCornerShape(50))
+            .clip(CircleShape)
             .background(citationCapsuleBackgroundColor())
             .clickable(
                 enabled = enabled,
@@ -786,50 +789,33 @@ internal fun CitationSourcesBottomSheet(
     onActivate: (CitationRecord) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberSmoothBottomSheetState()
-    val listState = rememberLazyListState()
-    var pendingActivation by remember { mutableStateOf<CitationRecord?>(null) }
     val sheetSearchSpec = searchSpec?.copy(onMatchPosition = { _, _, _ -> })
-    fun collapseThenActivate(source: CitationRecord) {
-        pendingActivation = source
-        sheetState.requestDismiss()
+    fun activateThenDismiss(source: CitationRecord) {
+        onActivate(source)
+        onDismiss()
     }
 
-    SmoothBottomSheet(
-        state = sheetState,
-        onDismissRequest = {
-            val source = pendingActivation
-            pendingActivation = null
-            onDismiss()
-            source?.let(onActivate)
-        },
-        contentAtTop = {
-            listState.firstVisibleItemIndex == 0 &&
-                listState.firstVisibleItemScrollOffset == 0
-        },
-        header = {
-            Text(
-                text = citationSourcesSheetTitle(
-                    sourceCount = citations.size,
-                    sourcesLabel = stringResource(R.string.citation_sources),
-                ),
-                style = ChatType.detailTitle,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-            )
-        },
-    ) {
+    AgoraBottomSheet(onDismissRequest = onDismiss) {
+        Text(
+            text = citationSourcesSheetTitle(
+                sourceCount = citations.size,
+                sourcesLabel = stringResource(R.string.citation_sources),
+            ),
+            style = ChatType.detailTitle,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = AgoraSpacing.Xxl, vertical = AgoraSpacing.Md),
+        )
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = AgoraSpacing.Xxl),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = AgoraAlpha.Handle),
+        )
         LazyColumn(
-            state = listState,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .weight(1f, fill = false)
                 .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = AgoraSpacing.Md, vertical = AgoraSpacing.Sm),
+            verticalArrangement = Arrangement.spacedBy(AgoraSpacing.Sm),
         ) {
             itemsIndexed(
                 items = citations,
@@ -840,7 +826,7 @@ internal fun CitationSourcesBottomSheet(
                     number = index + 1,
                     source = source,
                     searchSpec = sheetSearchSpec,
-                    onActivate = { collapseThenActivate(source) },
+                    onActivate = { activateThenDismiss(source) },
                 )
             }
         }
@@ -934,9 +920,9 @@ private fun CitationBadgeVisual(number: Int) {
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
                 alpha = CITATION_SOURCE_BADGE_FOREGROUND_ALPHA,
             ),
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = 10.sp,
-            lineHeight = 10.sp,
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 11.sp,
+                lineHeight = 15.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
         )

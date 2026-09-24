@@ -728,13 +728,17 @@ fun SettingsDataControlPage(viewModel: ChatViewModel, onBack: () -> Unit) {
     // GPT import success dialog
     if (showGptSuccessDialog && gptImportResult != null) {
         val result = gptImportResult!!
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        com.newoether.agora.ui.ds.AgoraDialog(
+            title = stringResource(R.string.gpt_import_success),
             onDismissRequest = {
                 showGptSuccessDialog = false
                 viewModel.importExport.clearGptImportState()
             },
-            title = { Text(stringResource(R.string.gpt_import_success), fontWeight = FontWeight.Bold) },
+            confirmText = stringResource(R.string.provider_close),
+            onConfirm = {
+                showGptSuccessDialog = false
+                viewModel.importExport.clearGptImportState()
+            },
             text = {
                 Column {
                     Text(stringResource(R.string.gpt_import_success_detail, result.conversationsImported, result.messagesImported))
@@ -748,14 +752,6 @@ fun SettingsDataControlPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    showGptSuccessDialog = false
-                    viewModel.importExport.clearGptImportState()
-                }) {
-                    Text(stringResource(R.string.provider_close))
-                }
-            }
         )
     }
 }
@@ -776,39 +772,11 @@ private fun ExportDataDialog(
 
     val anyChecked = exportConversations || exportMemories || exportPrompts || exportSettings || exportApiKeys
 
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.data_export_title), fontWeight = FontWeight.Bold) },
-        text = {
-            Column {
-                CheckRow(exportConversations, { exportConversations = it },
-                    "${stringResource(R.string.export_category_conversations)} ($conversationCount)")
-                CheckRow(exportMemories, { exportMemories = it },
-                    "${stringResource(R.string.export_category_memories)} ($memoryCount)")
-                CheckRow(exportPrompts, { exportPrompts = it },
-                    "${stringResource(R.string.export_category_system_prompts)} ($promptCount)")
-                CheckRow(exportSettings, { exportSettings = it },
-                    stringResource(R.string.export_category_settings))
-                CheckRow(exportApiKeys, { exportApiKeys = it },
-                    stringResource(R.string.export_category_api_keys))
-                if (exportApiKeys) {
-                    Spacer(Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Warning, null, modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            stringResource(R.string.export_api_keys_warning),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
+            com.newoether.agora.ui.ds.AgoraDialog(
+                title = stringResource(R.string.data_export_title),
+                onDismissRequest = onDismiss,
+                confirmText = stringResource(R.string.export_button),
+                onConfirm = {
                     val cats = mutableSetOf<DataExporter.ExportCategory>()
                     if (exportConversations) cats.add(DataExporter.ExportCategory.CONVERSATIONS)
                     if (exportMemories) cats.add(DataExporter.ExportCategory.MEMORIES)
@@ -816,15 +784,38 @@ private fun ExportDataDialog(
                     if (exportSettings) cats.add(DataExporter.ExportCategory.SETTINGS)
                     if (exportApiKeys) cats.add(DataExporter.ExportCategory.API_KEYS)
                     onExport(cats, exportApiKeys)
-                }, enabled = anyChecked) {
-                Text(stringResource(R.string.export_button))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+                },
+                dismissText = stringResource(R.string.cancel),
+                confirmEnabled = anyChecked,
+                text = {
+                    Column {
+                        CheckRow(exportConversations, { exportConversations = it },
+                            "${stringResource(R.string.export_category_conversations)} ($conversationCount)")
+                        CheckRow(exportMemories, { exportMemories = it },
+                            "${stringResource(R.string.export_category_memories)} ($memoryCount)")
+                        CheckRow(exportPrompts, { exportPrompts = it },
+                            "${stringResource(R.string.export_category_system_prompts)} ($promptCount)")
+                        CheckRow(exportSettings, { exportSettings = it },
+                            stringResource(R.string.export_category_settings))
+                        CheckRow(exportApiKeys, { exportApiKeys = it },
+                            stringResource(R.string.export_category_api_keys))
+                        if (exportApiKeys) {
+                            Spacer(Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Warning, null, modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.error)
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    stringResource(R.string.export_api_keys_warning),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                },
+            )
         }
-    )
-}
 
 @Composable
 internal fun CheckRow(checked: Boolean, onToggle: (Boolean) -> Unit, label: String) {

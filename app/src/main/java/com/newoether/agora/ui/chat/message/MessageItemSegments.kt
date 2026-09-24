@@ -79,6 +79,15 @@ internal fun MessageSegment.isInfoSegment(): Boolean =
 internal fun MessageSegment.isImageGenerationSegment(): Boolean =
     type == "tool" && toolName == "generate_image"
 
+internal fun MessageSegment.isVideoGenerationSegment(): Boolean =
+    type == "tool" && toolName == "generate_video"
+
+internal fun MessageSegment.isPodcastGenerationSegment(): Boolean =
+    type == "tool" && toolName == "generate_podcast"
+
+internal fun MessageSegment.isMediaGenerationSegment(): Boolean =
+    isImageGenerationSegment() || isVideoGenerationSegment() || isPodcastGenerationSegment()
+
 internal fun groupedInfoBlockEndExclusive(
     segments: List<MessageSegment>,
     startIndex: Int,
@@ -88,7 +97,7 @@ internal fun groupedInfoBlockEndExclusive(
     while (endIndex < segments.size && !segments[endIndex].isVisibleAnswerSegment()) {
         val segment = segments[endIndex]
         endIndex++
-        if (segment.isImageGenerationSegment()) break
+        if (segment.isMediaGenerationSegment()) break
     }
     return endIndex
 }
@@ -97,6 +106,16 @@ internal fun generatedImageAppearanceKey(
     messageId: String,
     detailIndex: Int,
 ): String = "$messageId:generated-image:$detailIndex"
+
+internal fun generatedVideoAppearanceKey(
+    messageId: String,
+    detailIndex: Int,
+): String = "$messageId:generated-video:$detailIndex"
+
+internal fun generatedPodcastAppearanceKey(
+    messageId: String,
+    detailIndex: Int,
+): String = "$messageId:generated-podcast:$detailIndex"
 
 internal enum class SegmentGroupPosition {
     SINGLE,
@@ -180,14 +199,14 @@ private fun List<MessageSegment>.hasTimelineInfoNeighbor(
     index: Int,
     direction: Int,
 ): Boolean {
-    if (direction > 0 && this[index].isImageGenerationSegment()) return false
+    if (direction > 0 && this[index].isMediaGenerationSegment()) return false
     var cursor = index + direction
     while (cursor in indices) {
         val candidate = this[cursor]
         when {
             candidate.isVisibleAnswerSegment() -> return false
             candidate.isInfoSegment() ->
-                return direction > 0 || !candidate.isImageGenerationSegment()
+                return direction > 0 || !candidate.isMediaGenerationSegment()
         }
         cursor += direction
     }
@@ -323,7 +342,7 @@ internal fun buildTimelineBlockKeys(
                             detailIndex++
                         }
                         blockEnd++
-                        if (blockSeg.isImageGenerationSegment()) break
+                        if (blockSeg.isMediaGenerationSegment()) break
                     }
                     keys += "$messageId:group:${firstDetailIndex ?: index}"
                     index = blockEnd

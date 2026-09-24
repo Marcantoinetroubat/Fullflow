@@ -58,6 +58,9 @@ class AgoraApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Enable full-document drawing once, process-wide, before any WebView is created.
+        // This allows PNG snapshot via draw(Canvas) for Mermaid diagram export.
+        android.webkit.WebView.enableSlowWholeDocumentDraw()
         CrashReporter.install(this)
         startupScope.launch {
             try {

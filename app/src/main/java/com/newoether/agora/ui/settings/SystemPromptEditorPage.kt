@@ -47,12 +47,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
 import com.newoether.agora.ui.components.DialogWindowEdgeToEdge
+import com.newoether.agora.ui.ds.AgoraBottomSheet
+import com.newoether.agora.ui.ds.AgoraSpacing
 import com.newoether.agora.data.PredefinedVariables
 import com.newoether.agora.data.PromptItemType
 import com.newoether.agora.data.PromptTemplateItem
 import com.newoether.agora.data.SystemPromptEntry
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
-import com.newoether.agora.ui.motion.MotionAwareModalBottomSheet as ModalBottomSheet
 
 private fun variableDisplayName(key: String): String = when (key) {
     PredefinedVariables.TIME -> "Current Time"
@@ -349,22 +350,20 @@ fun SystemPromptEditorPage(
             if (showDocFab) { Spacer(modifier = Modifier.height(80.dp)) }
     }
 
-    // Variable picker bottom sheet
+    // Variable picker bottom sheet (canonique)
     if (showVariablePicker) {
         val targetIndex = insertAtIndex
-        ModalBottomSheet(
+        AgoraBottomSheet(
             onDismissRequest = { showVariablePicker = false; insertAtIndex = -1 },
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ) {
             DialogWindowEdgeToEdge()
             Text(
                 text = stringResource(R.string.template_variable_picker_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = AgoraSpacing.Xxl, vertical = AgoraSpacing.Sm)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AgoraSpacing.Sm))
             val availableVars = if (selectedTab == 0) PredefinedVariables.ALL.filter { it !in PredefinedVariables.PER_MESSAGE_VARS } else PredefinedVariables.ALL
             for (key in availableVars) {
                 SettingsItem(
@@ -385,7 +384,7 @@ fun SystemPromptEditorPage(
                     }
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AgoraSpacing.Lg))
         }
     }
 }
@@ -455,17 +454,17 @@ private fun TemplateItemRow(
                 horizontalArrangement = Arrangement.End
             ) {
                 if (onMoveUp != null) {
-                    IconButton(onClick = onMoveUp, modifier = Modifier.size(28.dp)) {
+                    IconButton(onClick = onMoveUp, modifier = Modifier.minimumInteractiveComponentSize()) {
                         Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.template_move_up), modifier = Modifier.size(18.dp))
                     }
                 }
                 if (onMoveDown != null) {
-                    IconButton(onClick = onMoveDown, modifier = Modifier.size(28.dp)) {
+                    IconButton(onClick = onMoveDown, modifier = Modifier.minimumInteractiveComponentSize()) {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.template_move_down), modifier = Modifier.size(18.dp))
                     }
                 }
                 if (onDelete != null) {
-                    IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                    IconButton(onClick = onDelete, modifier = Modifier.minimumInteractiveComponentSize()) {
                         Icon(Icons.Default.Close, contentDescription = stringResource(R.string.provider_delete), modifier = Modifier.size(18.dp))
                     }
                 }

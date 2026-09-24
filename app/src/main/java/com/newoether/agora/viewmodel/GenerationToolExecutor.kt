@@ -10,9 +10,13 @@ import com.newoether.agora.model.RunEffectIdentity
 import com.newoether.agora.model.ToolCallData
 import com.newoether.agora.model.ToolExecutionStates
 import com.newoether.agora.sandbox.SandboxManagerFactory
+import com.newoether.agora.tool.BrainToolProvider
 import com.newoether.agora.tool.ImageGenToolProvider
 import com.newoether.agora.tool.MemoryToolProvider
+import com.newoether.agora.tool.NoteRagToolProvider
+import com.newoether.agora.tool.ObsidianTaskToolProvider
 import com.newoether.agora.tool.SkillToolProvider
+import com.newoether.agora.tool.PodcastToolProvider
 import com.newoether.agora.tool.RagToolProvider
 import com.newoether.agora.tool.ShellToolProvider
 import com.newoether.agora.tool.ToolExecutionEvent
@@ -20,6 +24,7 @@ import com.newoether.agora.tool.ToolExecutionResult
 import com.newoether.agora.tool.ToolImageStore
 import com.newoether.agora.tool.ToolPresentationMetadata
 import com.newoether.agora.tool.ToolProvider
+import com.newoether.agora.tool.VideoGenToolProvider
 import com.newoether.agora.tool.WebSearchToolProvider
 import com.newoether.agora.util.Constants
 import kotlinx.coroutines.CancellationException
@@ -87,6 +92,11 @@ internal class GenerationToolExecutor private constructor(
             confirmShellCommand: suspend (server: String, summary: String) -> Boolean,
         ): GenerationToolExecutor {
             val imageGenProvider = ImageGenToolProvider(app)
+            val videoGenProvider = VideoGenToolProvider(app)
+            val podcastProvider = PodcastToolProvider(app)
+            val noteRagProvider = NoteRagToolProvider(app)
+            val obsidianTaskProvider = ObsidianTaskToolProvider(app)
+            val brainProvider = BrainToolProvider(app)
             val shellProvider = ShellToolProvider(
                 sandboxFactory = sandboxFactory,
                 imageStore = ToolImageStore(app),
@@ -100,6 +110,11 @@ internal class GenerationToolExecutor private constructor(
                     WebSearchToolProvider(),
                     RagToolProvider(conversations),
                     imageGenProvider,
+                    videoGenProvider,
+                    podcastProvider,
+                    noteRagProvider,
+                    obsidianTaskProvider,
+                    brainProvider,
                     shellProvider,
                 ) + additionalProviders,
                 imageGenProvider = imageGenProvider,

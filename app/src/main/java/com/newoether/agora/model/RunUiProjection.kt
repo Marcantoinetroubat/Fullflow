@@ -89,6 +89,19 @@ object RunUiProjection {
                 branchAnchorMessageId = rootOutput.id,
             )
         }
+
+        // Ensure all ordinary assistant messages (even intermediate ones in a multi-turn run) expose basic actions (Copy, TTS, Share)
+        uniqueVisibleMessages
+            .filter(MessageGenerationBoundaryResolver::isOrdinaryAssistant)
+            .forEach { assistantMsg ->
+                val existing = result[assistantMsg.id] ?: RunMessagePresentation()
+                result[assistantMsg.id] = existing.copy(
+                    showActions = true,
+                    copyText = existing.copyText ?: assistantMsg.text.takeIf { it.isNotBlank() },
+                    deleteTargetMessageId = existing.deleteTargetMessageId ?: assistantMsg.id,
+                )
+            }
+
         return result
     }
 

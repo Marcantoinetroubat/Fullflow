@@ -24,24 +24,35 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as CircularProgressIndicator
+import com.newoether.agora.ui.ds.AgoraAlpha
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import java.io.File
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -50,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -835,7 +847,7 @@ private fun WebSearchResult(
             }
             if (index < results.lastIndex) {
                 HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = AgoraAlpha.Disabled),
                 )
             }
         }
@@ -925,3 +937,441 @@ private fun JsonObject?.long(key: String): Long? =
     string(key)?.toLongOrNull()
 private fun JsonObject?.boolean(key: String): Boolean? =
     string(key)?.toBooleanStrictOrNull()
+
+@Composable
+internal fun GeneratedVideoThumbnail(
+    segment: MessageSegment,
+    messageId: String,
+    detailIndex: Int,
+    isStreaming: Boolean,
+    segmentAppearanceRegistry: SegmentAppearanceRegistry,
+    onMediaClick: (List<String>, Int) -> Unit,
+) {
+    if (!segment.isVideoGenerationSegment()) return
+    val presentation = ToolPresentationResolver.resolve(segment)
+    val appearanceKey = generatedVideoAppearanceKey(messageId, detailIndex)
+    val animateAppearance = rememberSegmentAppearance(
+        registry = segmentAppearanceRegistry,
+        animationKey = appearanceKey,
+        isStreaming = isStreaming,
+    )
+    val appearanceModifier = generationLifecycleAppearanceModifier(
+        animationKey = appearanceKey,
+        animate = animateAppearance,
+        durationMillis = SEGMENT_ENTER_DURATION_MS,
+        initialScale = SEGMENT_ENTER_INITIAL_SCALE,
+    )
+
+    val videoPaths = remember(segment.toolImages, segment.toolResult, segment.toolStructuredResult) {
+        val fromImages = segment.toolImages.map { it.path }.filter { it.isNotBlank() }
+        if (fromImages.isNotEmpty()) fromImages
+        else {
+            val json = try {
+                val raw = segment.toolStructuredResult ?: segment.toolResult ?: ""
+                kotlinx.serialization.json.Json.parseToJsonElement(raw) as? kotlinx.serialization.json.JsonObject
+            } catch (_: Exception) { null }
+            val p = (json?.get("file_path") as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull
+            listOfNotNull(p)
+        }
+    }
+    val videoPath = videoPaths.firstOrNull()
+    val shape = RoundedCornerShape(16.dp)
+
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        contentAlignment = Alignment.TopStart,
+    ) {
+        if (presentation.isActive) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .then(appearanceModifier),
+                shape = shape,
+                color = Color(0xFF0F172A),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFA78BFA).copy(alpha = AgoraAlpha.Handle))
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(36.dp),
+                        strokeWidth = 3.dp,
+                        color = Color(0xFFA78BFA)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "Génération de la vidéo cinématique en cours...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFE2E8F0),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        } else if (videoPath != null && presentation.state == ToolPresentationState.COMPLETED) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(170.dp)
+                    .then(appearanceModifier)
+                    .clickable { onMediaClick(videoPaths, 0) },
+                shape = shape,
+                color = Color(0xFF0F172A),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFA78BFA).copy(alpha = 0.4f)),
+                shadowElevation = 8.dp
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF0F172A))
+                                )
+                            )
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.Black.copy(alpha = AgoraAlpha.Hint)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Movie,
+                                    contentDescription = null,
+                                    tint = Color(0xFFA78BFA),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "Veo 3.1",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .align(Alignment.Center)
+                            .clip(CircleShape)
+                            .background(Color(0xFFA78BFA))
+                            .shadow(12.dp, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Lire la vidéo",
+                            tint = Color(0xFF0F172A),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                Brush.verticalGradient(
+                                    0f to Color.Transparent,
+                                    1f to Color.Black.copy(alpha = 0.8f)
+                                )
+                            )
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = presentation.subject ?: "Vidéo cinématique",
+                            fontSize = 12.sp,
+                            color = Color(0xFFE2E8F0),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = Color.White.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = "Lire la vidéo",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun GeneratedPodcastThumbnail(
+    segment: MessageSegment,
+    messageId: String,
+    detailIndex: Int,
+    isStreaming: Boolean,
+    segmentAppearanceRegistry: SegmentAppearanceRegistry,
+) {
+    if (!segment.isPodcastGenerationSegment()) return
+    val context = LocalContext.current
+    val presentation = ToolPresentationResolver.resolve(segment)
+    val appearanceKey = generatedPodcastAppearanceKey(messageId, detailIndex)
+    val animateAppearance = rememberSegmentAppearance(
+        registry = segmentAppearanceRegistry,
+        animationKey = appearanceKey,
+        isStreaming = isStreaming,
+    )
+    val appearanceModifier = generationLifecycleAppearanceModifier(
+        animationKey = appearanceKey,
+        animate = animateAppearance,
+        durationMillis = SEGMENT_ENTER_DURATION_MS,
+        initialScale = SEGMENT_ENTER_INITIAL_SCALE,
+    )
+
+    val jsonResult = remember(segment.toolResult, segment.toolStructuredResult) {
+        try {
+            val raw = segment.toolStructuredResult ?: segment.toolResult ?: ""
+            kotlinx.serialization.json.Json.parseToJsonElement(raw) as? kotlinx.serialization.json.JsonObject
+        } catch (_: Exception) { null }
+    }
+
+    val audioPath = remember(segment.toolImages, jsonResult) {
+        val fromImages = segment.toolImages.firstOrNull()?.path?.takeIf { it.isNotBlank() }
+        fromImages ?: (jsonResult?.get("audio_path") as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
+    }
+    val htmlPath = remember(jsonResult) {
+        (jsonResult?.get("html_path") as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
+    }
+    val durationMs = remember(jsonResult) {
+        (jsonResult?.get("duration_ms") as? kotlinx.serialization.json.JsonPrimitive)?.intOrNull?.toLong() ?: 60_000L
+    }
+    val topic = remember(presentation.subject, jsonResult) {
+        presentation.subject ?: (jsonResult?.get("topic") as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull ?: "Synthèse de la discussion"
+    }
+
+    var isPlaying by remember { mutableStateOf(false) }
+    val mediaPlayer = remember { android.media.MediaPlayer() }
+
+    DisposableEffect(audioPath) {
+        onDispose {
+            runCatching {
+                if (mediaPlayer.isPlaying) mediaPlayer.stop()
+                mediaPlayer.release()
+            }
+        }
+    }
+
+    val shape = RoundedCornerShape(16.dp)
+
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        contentAlignment = Alignment.TopStart,
+    ) {
+        if (presentation.isActive) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .then(appearanceModifier),
+                shape = shape,
+                color = Color(0xFF0F172A),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = AgoraAlpha.Handle))
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(36.dp),
+                        strokeWidth = 3.dp,
+                        color = Color(0xFF38BDF8)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "Production du podcast audio en cours...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFE2E8F0),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        } else if (audioPath != null && presentation.state == ToolPresentationState.COMPLETED) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(appearanceModifier),
+                shape = shape,
+                color = Color(0xFF0B132B),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = AgoraAlpha.Disabled)),
+                shadowElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0F172A))
+                            )
+                        )
+                        .padding(14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF38BDF8).copy(alpha = 0.15f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.GraphicEq,
+                                    contentDescription = null,
+                                    tint = Color(0xFF38BDF8),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "FullFlow Podcast",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF38BDF8)
+                                )
+                            }
+                        }
+
+                        val totalSecs = (durationMs / 1000).toInt()
+                        Text(
+                            text = String.format("%02d:%02d", totalSecs / 60, totalSecs % 60),
+                            fontSize = 12.sp,
+                            color = Color(0xFF94A3B8),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Text(
+                        text = topic,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFF38BDF8),
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clickable {
+                                    val file = File(audioPath)
+                                    if (file.exists()) {
+                                        try {
+                                            if (isPlaying) {
+                                                mediaPlayer.pause()
+                                                isPlaying = false
+                                            } else {
+                                                mediaPlayer.reset()
+                                                mediaPlayer.setDataSource(audioPath)
+                                                mediaPlayer.prepare()
+                                                mediaPlayer.setOnCompletionListener { isPlaying = false }
+                                                mediaPlayer.start()
+                                                isPlaying = true
+                                            }
+                                        } catch (_: Exception) {
+                                            isPlaying = false
+                                        }
+                                    }
+                                }
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = if (isPlaying) "Pause" else "Lecture",
+                                    tint = Color(0xFF0F172A),
+                                    modifier = Modifier.size(26.dp)
+                                )
+                            }
+                        }
+
+                        if (htmlPath != null) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White.copy(alpha = AgoraAlpha.Divider),
+                                modifier = Modifier.clickable {
+                                    val file = File(htmlPath)
+                                    if (file.exists()) {
+                                        try {
+                                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                context,
+                                                "${context.packageName}.fileprovider",
+                                                file
+                                            )
+                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                                setDataAndType(uri, "text/html")
+                                                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (_: Exception) {}
+                                    }
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Language,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = "Lecteur Studio Web",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

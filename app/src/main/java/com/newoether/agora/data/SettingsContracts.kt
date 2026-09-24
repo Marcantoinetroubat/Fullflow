@@ -89,11 +89,17 @@ data class SystemPromptEntry(
 }
 
 internal val WEB_SEARCH_PROVIDERS = setOf(
-    "duckduckgo", "brave", "kagi", "serper", "tavily", "searxng",
+    "duckduckgo", "brave", "kagi", "serper", "tavily", "searxng", "exa",
 )
 
 internal fun normalizeWebSearchProvider(provider: String?): String =
     provider?.trim()?.lowercase()?.takeIf(WEB_SEARCH_PROVIDERS::contains) ?: "duckduckgo"
+
+/** Search depth modes: quick | adaptive (default) | deep. */
+internal val WEB_SEARCH_MODES = setOf("quick", "adaptive", "deep")
+
+internal fun normalizeWebSearchMode(mode: String?): String =
+    mode?.trim()?.lowercase()?.takeIf(WEB_SEARCH_MODES::contains) ?: "adaptive"
 
 internal fun decodeWebSearchApiKeys(preferences: Preferences, json: Json): Map<String, String> {
     val raw = SecretCrypto.decrypt(preferences[WEB_SEARCH_API_KEYS_JSON] ?: "{}")
@@ -140,6 +146,7 @@ data class ConversationSettings(
     val webSearchEnabled: Boolean? = null,
     val shellEnabled: Boolean? = null,
     val lowContextModeEnabled: Boolean? = null,
+    val backgroundImageUri: String? = null,
 ) {
     fun isAllNull() = contextWindow == null && temperature == null && maxTokens == null && topP == null
         && frequencyPenalty == null && presencePenalty == null
@@ -149,4 +156,5 @@ data class ConversationSettings(
         && openAiServiceTierEnabled == null && openAiServiceTier == null
         && webSearchEnabled == null && shellEnabled == null
         && lowContextModeEnabled == null
+        && backgroundImageUri == null
 }

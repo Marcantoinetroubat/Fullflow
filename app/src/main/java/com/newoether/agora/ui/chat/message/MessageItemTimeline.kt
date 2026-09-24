@@ -717,8 +717,8 @@ internal fun TimelineSegmentsContent(
                             blockCursor++
                         }
                         val imageBoundary =
-                            blockSegments.lastOrNull()?.takeIf { it.isImageGenerationSegment() }
-                        val imageDetailIndex =
+                            blockSegments.lastOrNull()?.takeIf { it.isMediaGenerationSegment() }
+                        val mediaDetailIndex =
                             blockDetailIndices.lastOrNull().takeIf { imageBoundary != null }
                         val firstDetailIndex = blockDetailIndices.firstOrNull() ?: index
                         val useInitialCompactIdentity =
@@ -770,15 +770,34 @@ internal fun TimelineSegmentsContent(
                             },
                             opensDetailSheet = opensDetailSheet,
                         )
-                        if (imageBoundary != null && imageDetailIndex != null) {
-                            GeneratedImageThumbnail(
-                                segment = imageBoundary,
-                                messageId = message.id,
-                                detailIndex = imageDetailIndex,
-                                isStreaming = isStreaming,
-                                segmentAppearanceRegistry = segmentAppearanceRegistry,
-                                onMediaClick = onMediaClick,
-                            )
+                        if (imageBoundary != null && mediaDetailIndex != null) {
+                            if (imageBoundary.isImageGenerationSegment()) {
+                                GeneratedImageThumbnail(
+                                    segment = imageBoundary,
+                                    messageId = message.id,
+                                    detailIndex = mediaDetailIndex,
+                                    isStreaming = isStreaming,
+                                    segmentAppearanceRegistry = segmentAppearanceRegistry,
+                                    onMediaClick = onMediaClick,
+                                )
+                            } else if (imageBoundary.isVideoGenerationSegment()) {
+                                GeneratedVideoThumbnail(
+                                    segment = imageBoundary,
+                                    messageId = message.id,
+                                    detailIndex = mediaDetailIndex,
+                                    isStreaming = isStreaming,
+                                    segmentAppearanceRegistry = segmentAppearanceRegistry,
+                                    onMediaClick = onMediaClick,
+                                )
+                            } else if (imageBoundary.isPodcastGenerationSegment()) {
+                                GeneratedPodcastThumbnail(
+                                    segment = imageBoundary,
+                                    messageId = message.id,
+                                    detailIndex = mediaDetailIndex,
+                                    isStreaming = isStreaming,
+                                    segmentAppearanceRegistry = segmentAppearanceRegistry,
+                                )
+                            }
                         }
                         previousVisibleWasAnswer = false
                         index = blockEnd
@@ -801,7 +820,7 @@ internal fun TimelineSegmentsContent(
                             animateAppearance = isStreaming,
                             topPaddingExtra = cardTopPaddingExtra,
                             groupPosition = timelineSegmentGroupPosition(segments, index),
-                            endsAtGeneratedImageBoundary = seg.isImageGenerationSegment(),
+                            endsAtGeneratedImageBoundary = seg.isImageGenerationSegment() || seg.isVideoGenerationSegment() || seg.isPodcastGenerationSegment(),
                             extendIntoMessageInsets = true,
                             cardAnimationKey = "$timelineKey:card",
                             segmentAppearanceRegistry = segmentAppearanceRegistry,
@@ -815,6 +834,23 @@ internal fun TimelineSegmentsContent(
                                 isStreaming = isStreaming,
                                 segmentAppearanceRegistry = segmentAppearanceRegistry,
                                 onMediaClick = onMediaClick,
+                            )
+                        } else if (seg.isVideoGenerationSegment()) {
+                            GeneratedVideoThumbnail(
+                                segment = seg,
+                                messageId = message.id,
+                                detailIndex = currentDetailIndex,
+                                isStreaming = isStreaming,
+                                segmentAppearanceRegistry = segmentAppearanceRegistry,
+                                onMediaClick = onMediaClick,
+                            )
+                        } else if (seg.isPodcastGenerationSegment()) {
+                            GeneratedPodcastThumbnail(
+                                segment = seg,
+                                messageId = message.id,
+                                detailIndex = currentDetailIndex,
+                                isStreaming = isStreaming,
+                                segmentAppearanceRegistry = segmentAppearanceRegistry,
                             )
                         }
                         previousVisibleWasAnswer = false

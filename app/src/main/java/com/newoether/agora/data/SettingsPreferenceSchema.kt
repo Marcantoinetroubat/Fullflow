@@ -1,6 +1,7 @@
 package com.newoether.agora.data
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -65,10 +66,19 @@ internal val WEB_SEARCH_PROVIDER = stringPreferencesKey("web_search_provider")
 internal val WEB_SEARCH_API_KEYS_JSON = stringPreferencesKey("web_search_api_keys_json")
 internal val WEB_SEARCH_NUM_RESULTS = intPreferencesKey("web_search_num_results")
 internal val WEB_SEARCH_BASE_URL = stringPreferencesKey("web_search_base_url")
+internal val WEB_SEARCH_FALLBACK_ENABLED = booleanPreferencesKey("web_search_fallback_enabled")
+internal val WEB_SEARCH_MODE = stringPreferencesKey("web_search_mode")
 internal val IMAGE_GEN_ENABLED = booleanPreferencesKey("image_gen_enabled")
 // Selected image model as "Provider:modelId"; provider creds are reused (no separate key/url).
 internal val IMAGE_GEN_MODEL = stringPreferencesKey("image_gen_model")
 internal val IMAGE_GEN_SIZE = stringPreferencesKey("image_gen_size")
+internal val VIDEO_GEN_ENABLED = booleanPreferencesKey("video_gen_enabled")
+internal val VIDEO_GEN_MODEL = stringPreferencesKey("video_gen_model")
+internal val VIDEO_GEN_PROMPT = stringPreferencesKey("video_gen_prompt")
+internal val VIDEO_GEN_NEGATIVE_PROMPT = stringPreferencesKey("video_gen_negative_prompt")
+internal val VIDEO_GEN_ASPECT_RATIO = stringPreferencesKey("video_gen_aspect_ratio")
+internal val VIDEO_GEN_DURATION = intPreferencesKey("video_gen_duration")
+internal val VIDEO_GEN_RESOLUTION = stringPreferencesKey("video_gen_resolution")
 internal val SEARCH_CONTEXT_WINDOW = intPreferencesKey("search_context_window")
 internal val SEARCH_MATCH_LIMIT = intPreferencesKey("search_match_limit")
 internal val RAG_THRESHOLD = stringPreferencesKey("rag_threshold")
@@ -112,6 +122,7 @@ internal val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
 internal val STICK_TO_BOTTOM = booleanPreferencesKey("stick_to_bottom")
 internal val PARSE_INLINE_DOLLAR_MATH = booleanPreferencesKey("parse_inline_dollar_math")
 internal val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
+internal val SOUNDS_ENABLED = booleanPreferencesKey("sounds_enabled")
 internal val DETAILED_TOKEN_USAGE = booleanPreferencesKey("detailed_token_usage")
 internal val TOOL_CALL_DISPLAY_MODE = stringPreferencesKey("tool_call_display_mode")
 internal val THINKING_SEGMENT_DISPLAY_MODE = stringPreferencesKey("thinking_segment_display_mode")
@@ -144,3 +155,47 @@ internal val AUTO_DELETE_ENABLED = booleanPreferencesKey("auto_delete_enabled")
 internal val AUTO_DELETE_PERIOD_HOURS = intPreferencesKey("auto_delete_period_hours")
 internal val LAST_BACKUP_TIMESTAMP = longPreferencesKey("last_backup_timestamp")
 internal val LAST_MODELS_FETCH_FINGERPRINT = stringPreferencesKey("last_models_fetch_fingerprint")
+
+// ── Magic Wand (Voix & Baguette) ─────────────────────────────
+internal val WAND_STRUCTURES_JSON = stringPreferencesKey("wand_structures_json")
+internal val WAND_MODEL = stringPreferencesKey("wand_model")
+internal val WAND_PERSONA_BRIEF = stringPreferencesKey("wand_persona_brief")
+internal val WAND_PERSONA_VERSION = intPreferencesKey("wand_persona_version")
+internal val WAND_PERSONA_UPDATED_AT = longPreferencesKey("wand_persona_updated_at")
+internal val WAND_AUTO_TTS_ENABLED = booleanPreferencesKey("wand_auto_tts_enabled")
+internal val WAND_TTS_MODEL = stringPreferencesKey("wand_tts_model")
+internal val WAND_IGNORE_CODE = booleanPreferencesKey("wand_ignore_code")
+internal val WAND_PROVIDER = stringPreferencesKey("wand_provider")
+internal val WAND_MAGIC_PROMPT = stringPreferencesKey("wand_magic_prompt")
+
+// ── Conversation Background Generation ─────────────────────────
+internal val BACKGROUND_GEN_MODEL = stringPreferencesKey("background_gen_model")
+internal val BACKGROUND_GEN_PROMPT = stringPreferencesKey("background_gen_prompt")
+internal val BACKGROUND_GEN_OPACITY = floatPreferencesKey("background_gen_opacity")
+
+// ── Conversation Podcast Generation ───────────────────────────
+internal val PODCAST_GEN_MODEL = stringPreferencesKey("podcast_gen_model")
+internal val PODCAST_GEN_PROMPT = stringPreferencesKey("podcast_gen_prompt")
+internal val PODCAST_GEN_TTS_ENGINE = stringPreferencesKey("podcast_gen_tts_engine")
+internal val PODCAST_GEN_TTS_MODEL = stringPreferencesKey("podcast_gen_tts_model")
+internal val PODCAST_GEN_VOICE = stringPreferencesKey("podcast_gen_voice")
+
+// ── General Text-to-Speech (TTS) ──────────────────────────────
+internal val TTS_PROVIDER_MODEL = stringPreferencesKey("tts_provider_model")
+internal val TTS_VOICE = stringPreferencesKey("tts_voice")
+internal val TTS_SPEED = floatPreferencesKey("tts_speed")
+internal val TTS_ENGINE_MODE = stringPreferencesKey("tts_engine_mode")
+
+// ── Proactive Intelligence ────────────────────────────────────
+internal val PROACTIVE_INTELLIGENCE_ENABLED = booleanPreferencesKey("proactive_intelligence_enabled")
+internal val PROACTIVE_INTELLIGENCE_PROVIDER = stringPreferencesKey("proactive_intelligence_provider")
+internal val PROACTIVE_INTELLIGENCE_MODEL = stringPreferencesKey("proactive_intelligence_model")
+internal val PROACTIVE_INTELLIGENCE_PROMPT = stringPreferencesKey("proactive_intelligence_prompt")
+
+// ── Editorial Magazine ─────────────────────────────────────────
+internal val EDITORIAL_ENABLED = booleanPreferencesKey("editorial_enabled")
+internal val EDITORIAL_IMAGE_MODEL = stringPreferencesKey("editorial_image_model")
+internal val EDITORIAL_IMAGE_PROMPT = stringPreferencesKey("editorial_image_prompt")
+internal val EDITORIAL_IMAGE_FREQUENCY = intPreferencesKey("editorial_image_frequency")
+internal val EDITORIAL_SERIF_ENABLED = booleanPreferencesKey("editorial_serif_enabled")
+

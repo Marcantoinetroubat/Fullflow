@@ -6,11 +6,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.newoether.agora.ui.ds.AgoraDialog
+import com.newoether.agora.ui.ds.DesignSystemGallery
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,39 +37,44 @@ fun SettingsDeveloperPage(
     val debugModelEnabled by viewModel.settings.debugModelEnabled.collectAsState()
     var showCapturePage by rememberSaveable { mutableStateOf(false) }
     var showDisableDialog by rememberSaveable { mutableStateOf(false) }
+    var showGallery by rememberSaveable { mutableStateOf(false) }
     val exportFailedMessage = stringResource(R.string.developer_options_export_failed)
 
     BackHandler(enabled = showCapturePage) {
         showCapturePage = false
     }
+    BackHandler(enabled = showGallery) {
+        showGallery = false
+    }
+
+    if (showGallery) {
+        CollapsingSettingsScaffold(
+            title = "Design System",
+            onBack = { showGallery = false },
+        ) {
+            DesignSystemGallery()
+        }
+        return
+    }
 
     if (showDisableDialog) {
-        AlertDialog(
+        AgoraDialog(
+            title = stringResource(R.string.developer_options_disable_title),
             onDismissRequest = { showDisableDialog = false },
-            icon = { Icon(Icons.Default.BugReport, contentDescription = null) },
-            title = { Text(stringResource(R.string.developer_options_disable_title)) },
+            confirmText = stringResource(R.string.developer_options_disable_confirm),
+            onConfirm = {
+                showDisableDialog = false
+                coroutineScope.launch {
+                    DeveloperDiagnostics.disableAndClear()
+                    viewModel.settings
+                        .setDeveloperOptionsEnabled(false)
+                        .join()
+                    onDisabled()
+                }
+            },
+            dismissText = stringResource(R.string.cancel),
             text = { Text(stringResource(R.string.developer_options_disable_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDisableDialog = false
-                        coroutineScope.launch {
-                            DeveloperDiagnostics.disableAndClear()
-                            viewModel.settings
-                                .setDeveloperOptionsEnabled(false)
-                                .join()
-                            onDisabled()
-                        }
-                    },
-                ) {
-                    Text(stringResource(R.string.developer_options_disable_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDisableDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
+            destructive = true,
         )
     }
 
@@ -111,11 +117,7 @@ fun SettingsDeveloperPage(
                                     trailingContent = {
                                         Switch(
                                             checked = developerModeEnabled,
-                                            onCheckedChange = { checked ->
-                                                if (!checked) {
-                                                    showDisableDialog = true
-                                                }
-                                            },
+                                            onCheckedChange = null,
                                         )
                                     },
                                 )
@@ -137,6 +139,24 @@ fun SettingsDeveloperPage(
                                     },
                                     leadingContent = {
                                         Icon(Icons.Default.Visibility, contentDescription = null)
+                                    },
+                                )
+                            },
+                            {
+                                SettingsItem(
+                                    modifier = Modifier.clickable {
+                                        showGallery = true
+                                    },
+                                    headlineContent = {
+                                        Text("Design System / Components")
+                                    },
+                                    supportingContent = {
+                                        Text(
+                                            "Galerie des composants canoniques Agora et leurs états.",
+                                        )
+                                    },
+                                    leadingContent = {
+                                        Icon(Icons.Default.Palette, contentDescription = "Design System")
                                     },
                                 )
                             },
@@ -166,7 +186,7 @@ fun SettingsDeveloperPage(
                                         Switch(
                                             checked = debugModelEnabled,
                                             enabled = developerModeEnabled,
-                                            onCheckedChange = viewModel.settings::setDebugModelEnabled,
+                                            onCheckedChange = null,
                                         )
                                     },
                                 )

@@ -1,3 +1,4 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 package com.newoether.agora.ui.chat.message
 
 import androidx.compose.animation.animateContentSize
@@ -8,8 +9,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.newoether.agora.ui.ds.AgoraAlpha
+import com.newoether.agora.ui.ds.AgoraSpacing
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import com.newoether.agora.ui.components.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -140,7 +145,6 @@ internal fun UserMessageBubble(
                 .clip(shape)
                 .combinedClickable(
                     enabled = !isEditing && showActions,
-                    hapticFeedbackEnabled = false,
                     onClick = {},
                     onLongClick = {
                         haptics.longPress()
@@ -356,17 +360,17 @@ internal fun UserMessageBubble(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .then(contextAlpha)
-                    .padding(top = 4.dp)
-                    .clip(RoundedCornerShape(100))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(horizontal = 4.dp)
+                    .padding(top = AgoraSpacing.Xs)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = AgoraAlpha.Hint))
+                    .padding(horizontal = AgoraSpacing.Xs)
             ) {
-                IconButton(onClick = { onSwitchBranch(-1) }, enabled = branchIndex > 0 && isEditingAllowed, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, null, modifier = Modifier.size(16.dp))
+                IconButton(onClick = { onSwitchBranch(-1) }, enabled = branchIndex > 0 && isEditingAllowed, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Branche précédente", modifier = Modifier.size(16.dp))
                 }
                 Text("${branchIndex + 1} / $totalBranches", style = MaterialTheme.typography.labelSmall)
-                IconButton(onClick = { onSwitchBranch(1) }, enabled = branchIndex < totalBranches - 1 && isEditingAllowed, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, modifier = Modifier.size(16.dp))
+                IconButton(onClick = { onSwitchBranch(1) }, enabled = branchIndex < totalBranches - 1 && isEditingAllowed, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Branche suivante", modifier = Modifier.size(16.dp))
                 }
             }
         }

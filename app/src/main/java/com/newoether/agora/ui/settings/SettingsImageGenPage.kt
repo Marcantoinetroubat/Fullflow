@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
+import com.newoether.agora.ui.components.OutlinedTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
@@ -216,28 +217,41 @@ fun SettingsImageGenPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                     if (pickList.isEmpty()) {
                         Text(stringResource(R.string.transcription_no_models_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                            items(pickList, key = { it }) { model ->
-                            val parsed = ModelId.parse(model)
-                            val displayName = modelAliasDisplayName(
-                                model,
-                                modelAliases,
-                                customProviders,
-                            )
-                            SettingsItem(
-                                headlineContent = { Text(displayName, fontWeight = if (selectedModel == model) FontWeight.Bold else FontWeight.Normal) },
-                                supportingContent = { Text(providerDisplayName(parsed.providerName, customProviders), style = MaterialTheme.typography.bodySmall) },
-                                leadingContent = {
-                                    RadioButton(selected = selectedModel == model, onClick = {
-                                        viewModel.settings.setImageGenModel(model); showModelDialog = false
-                                    })
-                                },
-                                modifier = Modifier.clickable {
-                                    viewModel.settings.setImageGenModel(model); showModelDialog = false
-                                }
-                            )
+                        val pickListByProvider = remember(pickList) {
+                            pickList.groupBy { ModelId.parse(it).providerName }
                         }
-                    }
+                        LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
+                            pickListByProvider.forEach { (providerId, models) ->
+                                item(key = "provider_$providerId") {
+                                    val providerName = providerDisplayName(providerId, customProviders)
+                                    Text(
+                                        text = providerName,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                    )
+                                }
+                                items(models, key = { it }) { model ->
+                                    val displayName = modelAliasDisplayName(
+                                        model,
+                                        modelAliases,
+                                        customProviders,
+                                    )
+                                    SettingsItem(
+                                        headlineContent = { Text(displayName, fontWeight = if (selectedModel == model) FontWeight.Bold else FontWeight.Normal) },
+                                        supportingContent = { Text(model, style = MaterialTheme.typography.bodySmall) },
+                                        leadingContent = {
+                                            RadioButton(selected = selectedModel == model, onClick = {
+                                                viewModel.settings.setImageGenModel(model); showModelDialog = false
+                                            })
+                                        },
+                                        modifier = Modifier.clickable {
+                                            viewModel.settings.setImageGenModel(model); showModelDialog = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             },

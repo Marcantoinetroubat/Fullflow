@@ -55,10 +55,11 @@ internal fun MessageInfoDialog(
         stringResource(R.string.token_count, it)
     } ?: "—"
 
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.message_info),
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.message_info), fontWeight = FontWeight.Bold) },
+        confirmText = stringResource(R.string.provider_close),
+        onConfirm = onDismiss,
         text = {
             Column {
                 Text(stringResource(R.string.time_with_label, dateString), style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp, lineHeight = 20.sp))
@@ -90,9 +91,6 @@ internal fun MessageInfoDialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.provider_close)) }
-        }
     )
 }
 
@@ -104,39 +102,26 @@ internal fun ContextCompactDeleteDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    com.newoether.agora.ui.ds.AgoraDialog(
+        title = stringResource(R.string.delete_compact_message_title),
         onDismissRequest = { if (!pending) onDismiss() },
+        confirmText = stringResource(R.string.delete),
+        onConfirm = onConfirm,
+        dismissText = stringResource(R.string.cancel),
+        dismissEnabled = enabled && !pending,
+        confirmEnabled = enabled && !pending,
         properties = DialogProperties(
             dismissOnBackPress = !pending,
             dismissOnClickOutside = !pending,
         ),
-        title = {
-            Text(
-                stringResource(R.string.delete_compact_message_title),
-                fontWeight = FontWeight.Bold,
-            )
-        },
+        destructive = true,
         text = { Text(stringResource(R.string.delete_compact_message_confirm)) },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = enabled && !pending,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
-            ) {
-                if (pending) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 3.dp)
-                } else {
-                    Text(stringResource(R.string.delete))
-                }
+        confirmContent = if (pending) {
+            {
+                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 3.dp)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = enabled && !pending) {
-                Text(stringResource(R.string.cancel))
-            }
+        } else {
+            null
         },
     )
 }

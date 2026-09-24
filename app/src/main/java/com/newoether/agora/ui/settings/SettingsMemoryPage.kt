@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as CircularProgressIndicator
+import com.newoether.agora.ui.ds.AgoraAlpha
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -160,7 +161,7 @@ fun SettingsMemoryPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         add {
                             SettingsItem(
                                 headlineContent = { Text(stringResource(R.string.memory_no_files), color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                                supportingContent = { Text(stringResource(R.string.memory_create_hint), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                                supportingContent = { Text(stringResource(R.string.memory_create_hint), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = AgoraAlpha.Hint)) },
                                 leadingContent = { Icon(Icons.Default.Chat, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
                                 modifier = Modifier.heightIn(min = 64.dp)
                             )
@@ -173,7 +174,7 @@ fun SettingsMemoryPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                 SettingsItem(
                                     headlineContent = { Text(displayName, fontWeight = FontWeight.Medium) },
                                     supportingContent = if (file.description.isNotBlank()) {{ Text(file.description) }} else null,
-                                    leadingContent = { Icon(Icons.Default.Description, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)) },
+                                    leadingContent = { Icon(Icons.Default.Description, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = AgoraAlpha.Hint)) },
                                     trailingContent = {
                                         Box {
                                             IconButton(onClick = { showFileMenu = true }) {
@@ -311,38 +312,30 @@ fun SettingsMemoryPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     } else {
-                        OutlinedTextField(
+                        com.newoether.agora.ui.ds.AgoraTextField(
                             value = editFileName,
                             onValueChange = { editFileName = it },
-                            label = { Text(stringResource(R.string.memory_title_hint)) },
-                            singleLine = true,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            label = stringResource(R.string.memory_title_hint),
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                     if (!isActiveMemory) {
-                        OutlinedTextField(
+                        com.newoether.agora.ui.ds.AgoraTextField(
                             value = editDesc,
                             onValueChange = { editDesc = it },
-                            label = { Text(stringResource(R.string.memory_desc_hint)) },
-                            singleLine = true,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            label = stringResource(R.string.memory_desc_hint),
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
-                    OutlinedTextField(
+                    com.newoether.agora.ui.ds.AgoraTextField(
                         value = editContent,
                         onValueChange = { editContent = it },
-                        label = { Text(stringResource(R.string.memory_content_hint)) },
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 200.dp, max = 400.dp),
+                        label = stringResource(R.string.memory_content_hint),
+                        singleLine = false,
+                        modifier = Modifier.heightIn(min = 200.dp, max = 400.dp),
                         textStyle = MaterialTheme.typography.bodySmall.copy(
                             fontFamily = FontFamily.Monospace
-                        )
+                        ),
                     )
                 }
             },
@@ -410,33 +403,25 @@ fun SettingsMemoryPage(viewModel: ChatViewModel, onBack: () -> Unit) {
             title = { Text(stringResource(R.string.memory_add_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
+                    com.newoether.agora.ui.ds.AgoraTextField(
                         value = newFileName,
                         onValueChange = { newFileName = it },
-                        label = { Text(stringResource(R.string.memory_title_hint)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        label = stringResource(R.string.memory_title_hint),
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedTextField(
+                    com.newoether.agora.ui.ds.AgoraTextField(
                         value = newFileDesc,
                         onValueChange = { newFileDesc = it },
-                        label = { Text(stringResource(R.string.memory_desc_hint)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        label = stringResource(R.string.memory_desc_hint),
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedTextField(
+                    com.newoether.agora.ui.ds.AgoraTextField(
                         value = newFileContent,
                         onValueChange = { newFileContent = it },
-                        label = { Text(stringResource(R.string.memory_content_hint)) },
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 150.dp),
-                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+                        label = stringResource(R.string.memory_content_hint),
+                        singleLine = false,
+                        modifier = Modifier.heightIn(min = 150.dp),
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                     )
                 }
             },

@@ -26,15 +26,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.newoether.agora.ui.ds.AgoraDurations
+import com.newoether.agora.ui.ds.AgoraSpacing
 
 private val PillTabCornerVisibilityThreshold = 0.01.dp
 private const val PillTabWeightVisibilityThreshold = 0.001f
 
 /**
- * Expressive segmented "pill" tab switcher: a row of equal-weight tabs where the selected tab
- * springs to a full-pill shape, grows slightly wider (bouncy), and fills with the primary color,
- * while its neighbours square off to an 8dp inner corner. Originally hand-designed inline for the
- * system prompt editor; extracted here so any settings surface can reuse the identical motion.
+ * Expressive segmented "pill" tab switcher (canonique, avec AgoraTabs pour les
+ * onglets soulignés M3) : un segmented control où l'onglet sélectionné
+ * remplit en primary. Durées unifiées via AgoraDurations, géométrie via
+ * AgoraSpacing/AgoraRadii. Hauteur min 48dp (touch target).
  *
  * @param tabs the labels, left to right.
  * @param selectedIndex currently selected tab.
@@ -49,17 +51,17 @@ fun PillTabSwitcher(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    tabHeight: Dp = 44.dp,
+    tabHeight: Dp = 48.dp,
     allowLabelOverflow: Boolean = false,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        horizontalArrangement = Arrangement.spacedBy(AgoraSpacing.Xs)
     ) {
         tabs.forEachIndexed { index, label ->
             val isSelected = selectedIndex == index
             val outerCorner = tabHeight / 2f
-            val innerCorner = 8.dp
+            val innerCorner = AgoraSpacing.Sm
             val targetTopStart = if (isSelected || index == 0) outerCorner else innerCorner
             val targetBottomStart = if (isSelected || index == 0) outerCorner else innerCorner
             val targetTopEnd = if (isSelected || index == tabs.lastIndex) outerCorner else innerCorner
@@ -79,12 +81,12 @@ fun PillTabSwitcher(
             val safeBottomEnd = bottomEnd.coerceIn(innerCorner, outerCorner)
             val containerColor by animateColorAsState(
                 targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
-                animationSpec = tween(220),
+                animationSpec = tween(AgoraDurations.Fast),
                 label = "pillTabContainerColor"
             )
             val contentColor by animateColorAsState(
                 targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                animationSpec = tween(220),
+                animationSpec = tween(AgoraDurations.Fast),
                 label = "pillTabContentColor"
             )
             val widthWeight by animateFloatAsState(
@@ -109,7 +111,7 @@ fun PillTabSwitcher(
                 contentColor = contentColor
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = AgoraSpacing.Md),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

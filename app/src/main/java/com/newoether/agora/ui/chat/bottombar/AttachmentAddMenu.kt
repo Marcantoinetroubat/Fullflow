@@ -6,13 +6,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,9 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
+import com.newoether.agora.ui.ds.AgoraRadii
+import com.newoether.agora.ui.ds.AgoraSpacing
 
 @androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
@@ -39,6 +47,8 @@ internal fun AttachmentAddMenu(
     onPhotos: () -> Unit,
     onVideos: () -> Unit,
     onFiles: () -> Unit,
+    onWandClick: (() -> Unit)? = null,
+    onPipelineClick: (() -> Unit)? = null,
 ) {
     var showAddMenu by remember { mutableStateOf(false) }
     var lastAddDismissTime by remember { mutableLongStateOf(0L) }
@@ -56,15 +66,12 @@ internal fun AttachmentAddMenu(
                 else if (now - lastAddDismissTime > 200) showAddMenu = true
             },
             enabled = enabled,
-            modifier = Modifier.size(32.dp).menuAnchor(
-                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                enabled = enabled,
-            ),
+            modifier = Modifier.size(48.dp).menuAnchor(),
         ) {
             Icon(
                 Icons.Default.Add,
                 stringResource(R.string.add_attachment),
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -78,12 +85,126 @@ internal fun AttachmentAddMenu(
                 }
             },
             matchTextFieldWidth = false,
-            shape = RoundedCornerShape(16.dp),
+            shape = AgoraRadii.Md,
         ) {
             AttachmentMenuItem(Icons.Default.PhotoCamera, R.string.camera) { select(onCamera) }
             AttachmentMenuItem(Icons.Default.Image, R.string.photos) { select(onPhotos) }
             AttachmentMenuItem(Icons.Default.Videocam, R.string.videos) { select(onVideos) }
             AttachmentMenuItem(Icons.Default.AttachFile, R.string.files) { select(onFiles) }
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_nano_banana),
+                            contentDescription = null,
+                            tint = androidx.compose.ui.graphics.Color.Unspecified,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Md))
+                        Text(stringResource(R.string.image_studio_title))
+                    }
+                },
+                onClick = {
+                    select {
+                        com.newoether.agora.studio.image.GeminiImageStudioController.openStudio()
+                    }
+                },
+            )
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_google_drive),
+                            contentDescription = null,
+                            tint = androidx.compose.ui.graphics.Color.Unspecified,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Md))
+                        Text(stringResource(R.string.workspace_google_drive))
+                    }
+                },
+                onClick = {
+                    select {
+                        com.newoether.agora.workspace.drive.GoogleDriveWorkspaceController.openDriveDashboard()
+                    }
+                },
+            )
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Language,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Md))
+                        Text("Recherche Web")
+                    }
+                },
+                onClick = {
+                    select {
+                        com.newoether.agora.ui.webresearch.WebResearchController.open()
+                    }
+                },
+            )
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Mic,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Md))
+                        Text("FullLive — Assistant Vocal")
+                    }
+                },
+                onClick = {
+                    select {
+                        com.newoether.agora.ui.chat.live.FullLiveController.open()
+                    }
+                },
+            )
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Psychology,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Md))
+                        Text("Second Cerveau — Notes & Graphe")
+                    }
+                },
+                onClick = {
+                    select {
+                        com.newoether.agora.ui.chat.live.SecondBrainController.open()
+                    }
+                },
+            )
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.AccountTree,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp)
+                        )
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Md))
+                        Text("Pipeline d'Agents")
+                    }
+                },
+                onClick = {
+                    select {
+                        onPipelineClick?.invoke()
+                    }
+                },
+            )
         }
     }
 }

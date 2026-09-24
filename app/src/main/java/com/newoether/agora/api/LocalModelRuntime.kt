@@ -119,8 +119,12 @@ internal object LocalModelRuntime {
                 }
                 return
             }
+            if (!LlamaEngine.isAvailable) {
+                DebugLog.i(TAG, "Local llama native library not available, skipping native backend initialization")
+                return
+            }
             if (!LlamaEngine.initializeBackends(canonicalDirectory)) {
-                DebugLog.e(TAG, "Unable to initialize the Local llama CPU backend")
+                DebugLog.w(TAG, "Unable to initialize the Local llama CPU backend")
                 return
             }
             nativeBackendDirectory = canonicalDirectory

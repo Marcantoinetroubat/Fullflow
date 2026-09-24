@@ -46,7 +46,7 @@ object UpdateChecker {
                 return@withContext null
             }
 
-            val body = response.body.string()
+            val body = response.body?.string().orEmpty()
             response.close()
 
             val release = json.decodeFromString<GitHubRelease>(body)

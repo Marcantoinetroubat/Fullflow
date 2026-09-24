@@ -60,6 +60,9 @@ class ImageGenToolProvider(private val app: Application) : ToolProvider {
         arguments: String,
         ctx: GenerationContext,
     ): Flow<ToolExecutionEvent> = flow {
+        val model = ctx.imageGenModel.ifBlank { "image-model" }
+        emit(ToolExecutionEvent.TargetResolved(target = "image_generation:$model"))
+        emit(ToolExecutionEvent.Progress(message = "Création de l'image en cours..."))
         emit(ToolExecutionEvent.Completed(executeResult(name, arguments, ctx)))
     }
 
@@ -92,32 +95,40 @@ class ImageGenToolProvider(private val app: Application) : ToolProvider {
         val size = (args["size"] as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() }
             ?: ctx.imageGenSize.ifBlank { "1024x1024" }
 
-        val apiKey = ctx.imageGenApiKey
+        val apiKey = ctx.imageGenApiKey.ifBlank {
+            com.newoether.agora.api.genmedia.GenMediaKeys.resolveApiKeyBlocking(app, null)
+        }
         if (apiKey.isBlank()) return err("no_api_key", null) to null
-        val baseUrl = ctx.imageGenBaseUrl.ifBlank { ProviderDefaults.OPENAI_BASE_URL }.trimEnd('/')
-        val model = ctx.imageGenModel.ifBlank { "gpt-image-1" }
+        val baseUrl = ctx.imageGenBaseUrl.trimEnd('/')
+        val model = ctx.imageGenModel.ifBlank {
+            if (baseUrl.contains("openai") || apiKey.startsWith("sk-")) "dall-e-3" else "imagen-3.0-generate-002"
+        }
 
         return withContext(Dispatchers.IO) {
             try {
-                val body = buildJsonObject {
-                    put("model", model)
-                    put("prompt", prompt)
-                    put("size", size)
-                    put("n", 1)
-                }.toString()
-                val response = HttpClient.post(
-                    "$baseUrl/images/generations",
-                    body,
-                    mapOf("Authorization" to "Bearer $apiKey"),
-                    callTimeoutMillis = Constants.IMAGE_GENERATION_TIMEOUT_MS,
-                    readTimeoutMillis = Constants.IMAGE_GENERATION_TIMEOUT_MS,
-                ) ?: return@withContext err("no_response", null) to null
+                val bytes: ByteArray = if (isGoogleEndpoint(baseUrl, model)) {
+                    fetchGoogleImageBytes(baseUrl, model, apiKey, prompt, size)
+                        ?: return@withContext err("no_image", "Google API returned no image.") to null
+                } else {
+                    val effectiveBaseUrl = baseUrl.ifBlank { ProviderDefaults.OPENAI_BASE_URL }
+                    val body = buildJsonObject {
+                        put("model", model)
+                        put("prompt", prompt)
+                        put("size", size)
+                        put("n", 1)
+                    }.toString()
+                    val response = HttpClient.post(
+                        "$effectiveBaseUrl/images/generations",
+                        body,
+                        mapOf("Authorization" to "Bearer $apiKey"),
+                        callTimeoutMillis = Constants.IMAGE_GENERATION_TIMEOUT_MS,
+                        readTimeoutMillis = Constants.IMAGE_GENERATION_TIMEOUT_MS,
+                    ) ?: return@withContext err("no_response", null) to null
 
-                val json = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(response)
-                val first = json["data"]?.jsonArray?.firstOrNull()?.jsonObject
-                    ?: return@withContext err("no_image", "The endpoint returned no image data.") to null
+                    val json = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(response)
+                    val first = json["data"]?.jsonArray?.firstOrNull()?.jsonObject
+                        ?: return@withContext err("no_image", "The endpoint returned no image data.") to null
 
-                val bytes: ByteArray = run {
                     val b64 = (first["b64_json"] as? JsonPrimitive)?.content
                     if (!b64.isNullOrBlank()) {
                         android.util.Base64.decode(b64, android.util.Base64.DEFAULT)
@@ -153,9 +164,115 @@ class ImageGenToolProvider(private val app: Application) : ToolProvider {
         }
     }
 
-    private fun err(code: String, message: String?): String = buildJsonObject {
-        put("type", "image_generation")
-        put("error", code)
-        if (!message.isNullOrBlank()) put("message", message)
-    }.toString()
+    private fun isGoogleEndpoint(baseUrl: String, model: String): Boolean {
+        return baseUrl.contains("generativelanguage.googleapis.com") ||
+            baseUrl.contains("googleapis.com") ||
+            model.startsWith("imagen", ignoreCase = true) ||
+            model.startsWith("gemini", ignoreCase = true) ||
+            (baseUrl.isBlank() && !model.startsWith("dall-e", ignoreCase = true) && !model.startsWith("gpt-", ignoreCase = true))
+    }
+
+    private suspend fun fetchGoogleImageBytes(
+        baseUrl: String,
+        model: String,
+        apiKey: String,
+        prompt: String,
+        size: String,
+    ): ByteArray? {
+        val root = if (baseUrl.isBlank() || baseUrl.contains("openai.com")) {
+            "https://generativelanguage.googleapis.com/v1beta"
+        } else {
+            baseUrl
+        }
+
+        if (model.contains("imagen", ignoreCase = true) || model.isBlank() || model == "image-model" || model == "gpt-image-1") {
+            val targetModel = if (model.isBlank() || !model.contains("imagen", ignoreCase = true)) {
+                "imagen-3.0-generate-002"
+            } else {
+                model
+            }
+            val url = "$root/models/$targetModel:predict"
+            val ratio = mapSizeToAspectRatio(size)
+            val reqBody = buildJsonObject {
+                put("instances", kotlinx.serialization.json.buildJsonArray {
+                    add(buildJsonObject { put("prompt", prompt) })
+                })
+                put("parameters", buildJsonObject {
+                    put("sampleCount", 1)
+                    put("aspectRatio", ratio)
+                    put("personGeneration", "allow_adult")
+                    put("negativePrompt", "blurry, watermark, distorted text")
+                })
+            }.toString()
+
+            val response = HttpClient.post(
+                url,
+                reqBody,
+                mapOf("Content-Type" to "application/json", "x-goog-api-key" to apiKey),
+            ) ?: return null
+            val rootObj = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(response)
+            val predictions = rootObj["predictions"]?.jsonArray
+            val b64 = (predictions?.firstOrNull()?.jsonObject?.get("bytesBase64Encoded") as? JsonPrimitive)?.content
+            return if (!b64.isNullOrBlank()) android.util.Base64.decode(b64, android.util.Base64.DEFAULT) else null
+        } else {
+            val targetModel = if (model.isBlank() || model == "gpt-image-1") "gemini-3.1-flash-image" else model
+            val url = "$root/models/$targetModel:generateContent"
+            val reqBody = buildJsonObject {
+                put("contents", kotlinx.serialization.json.buildJsonArray {
+                    add(buildJsonObject {
+                        put("parts", kotlinx.serialization.json.buildJsonArray {
+                            add(buildJsonObject { put("text", prompt) })
+                        })
+                    })
+                })
+                put("generationConfig", buildJsonObject {
+                    put("responseModalities", kotlinx.serialization.json.buildJsonArray {
+                        add(JsonPrimitive("TEXT"))
+                        add(JsonPrimitive("IMAGE"))
+                    })
+                })
+            }.toString()
+
+            val response = HttpClient.post(
+                url,
+                reqBody,
+                mapOf("Content-Type" to "application/json", "x-goog-api-key" to apiKey),
+            ) ?: return null
+            val rootObj = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(response)
+            val candidates = rootObj["candidates"]?.jsonArray
+            val parts = candidates?.firstOrNull()?.jsonObject?.get("content")?.jsonObject?.get("parts")?.jsonArray
+            for (part in parts.orEmpty()) {
+                val pObj = part.jsonObject
+                val inlineData = pObj["inlineData"]?.jsonObject ?: pObj["inline_data"]?.jsonObject
+                val dataStr = (inlineData?.get("data") as? JsonPrimitive)?.content
+                if (!dataStr.isNullOrBlank()) {
+                    return android.util.Base64.decode(dataStr, android.util.Base64.DEFAULT)
+                }
+            }
+            return null
+        }
+    }
+
+    private fun mapSizeToAspectRatio(size: String): String {
+        val parts = size.split("x", "X")
+        if (parts.size == 2) {
+            val w = parts[0].toIntOrNull() ?: 1024
+            val h = parts[1].toIntOrNull() ?: 1024
+            return when {
+                w == h -> "1:1"
+                w > h && (w.toFloat() / h.toFloat() > 1.5f) -> "16:9"
+                w > h -> "4:3"
+                h > w && (h.toFloat() / w.toFloat() > 1.5f) -> "9:16"
+                h > w -> "3:4"
+                else -> "1:1"
+            }
+        }
+        return "1:1"
+    }
 }
+
+private fun err(code: String, message: String?): String = buildJsonObject {
+    put("type", "image_generation")
+    put("error", code)
+    if (!message.isNullOrBlank()) put("message", message)
+}.toString()

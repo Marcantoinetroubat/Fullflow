@@ -379,6 +379,18 @@ internal fun MessageItem(
                         searchHighlight = searchHighlight,
                     )
                 } else {
+                    val precedingUserPrompt = remember(displayMessage.id, displayMessage.parentId) {
+                        val msgs = conversationMessages()
+                        val parent = displayMessage.parentId?.let { pId -> msgs.firstOrNull { it.id == pId } }
+                        if (parent != null && parent.participant == Participant.USER) {
+                            parent.text
+                        } else {
+                            val currentIdx = msgs.indexOfFirst { it.id == displayMessage.id }
+                            if (currentIdx > 0) {
+                                msgs.take(currentIdx).lastOrNull { it.participant == Participant.USER }?.text
+                            } else null
+                        }
+                    }
                     AssistantMessageContent(
                         message = displayMessage,
                         segmentAppearanceRegistry = segmentAppearanceRegistry,
@@ -419,6 +431,7 @@ internal fun MessageItem(
                         onLayoutMutationStarted = onLayoutMutationStarted,
                         onLayoutMutationSettled = onLayoutMutationSettled,
                         setThoughtBlockHeight = {},
+                        userPrompt = precedingUserPrompt,
                     )
                 }
             }
@@ -622,12 +635,12 @@ internal fun ContextCompactPill(
             Box {
                 IconButton(
                     onClick = { actionsExpanded = true },
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(48.dp),
                 ) {
                     Icon(
                         imageVector = androidx.compose.material.icons.Icons.Default.MoreVert,
                         contentDescription = stringResource(com.newoether.agora.R.string.more),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(20.dp),
                     )
                 }
                 DropdownMenu(

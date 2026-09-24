@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class McpToolProvider(
-    private val registry: McpRegistry,
+    val registry: McpRegistry,
 ) : ToolProvider {
     override fun definitions(ctx: GenerationContext): List<ToolDefinition> =
         registry.enabledTools().map { it.asToolDefinition() }

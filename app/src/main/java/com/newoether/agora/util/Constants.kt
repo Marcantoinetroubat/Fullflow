@@ -69,5 +69,5 @@ object Constants {
     /** Placeholder model ID used as StateFlow/DataStore cold-start fallback and
      *  template preview sample. NOT the real default model — it is overwritten
      *  as soon as the user selects a model or DataStore loads the persisted value. */
-    const val EXAMPLE_MODEL_ID = "gemini-1.5-flash"
+    const val EXAMPLE_MODEL_ID = "gemini-3.5-flash"
 }

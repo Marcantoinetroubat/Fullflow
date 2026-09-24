@@ -7,11 +7,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.Cached
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
@@ -22,11 +22,15 @@ import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as Cir
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.DpSize
 import com.newoether.agora.R
 import com.newoether.agora.api.ProviderDefaults
 import com.newoether.agora.viewmodel.EmbeddingCacheRowPhase
@@ -65,6 +69,32 @@ fun SettingsSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
     val embeddingModelIds = remember(embeddingModels) {
         embeddingModels.map(com.newoether.agora.data.EmbeddingModelConfig::id)
     }
+    val actionTextMeasurer = rememberTextMeasurer()
+    val actionLabelSizes = listOf(
+        stringResource(R.string.retry),
+        stringResource(R.string.recache_action),
+        stringResource(R.string.cache_action),
+    ).map { label ->
+        actionTextMeasurer.measure(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            softWrap = false,
+        ).size
+    }
+    val actionPadding = ButtonDefaults.TextButtonContentPadding
+    val layoutDirection = LocalLayoutDirection.current
+    // Reserve every action before loading resolves, including localized text and font scaling.
+    val cacheActionSize = with(LocalDensity.current) {
+        DpSize(
+            width = (actionLabelSizes.maxOf { it.width }.toDp() +
+                actionPadding.calculateLeftPadding(layoutDirection) +
+                actionPadding.calculateRightPadding(layoutDirection)).coerceAtLeast(76.dp),
+            height = (actionLabelSizes.maxOf { it.height }.toDp() +
+                actionPadding.calculateTopPadding() +
+                actionPadding.calculateBottomPadding()).coerceAtLeast(48.dp),
+        )
+    }
     LaunchedEffect(embeddingModelIds) { viewModel.ragManager.loadCacheCounts() }
     var showRemoteDialog by remember { mutableStateOf(false) }
     var showLocalDialog by remember { mutableStateOf(false) }
@@ -95,16 +125,33 @@ fun SettingsSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
     LaunchedEffect(searchMatchLimit) { searchMatchGate.reconcile(searchMatchLimit) }
     LaunchedEffect(ragThreshold) { ragThresholdGate.reconcile(ragThreshold) }
     var renameText by remember { mutableStateOf("") }
-    // Embedding provider presets
-    val embeddingProviders = listOf(
-        EmbeddingProviderPreset(Constants.PROVIDER_OPENAI, ProviderDefaults.embeddingBaseUrl(Constants.PROVIDER_OPENAI), listOf("text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002")),
-        EmbeddingProviderPreset("Mistral", ProviderDefaults.embeddingBaseUrl("Mistral"), listOf("mistral-embed")),
-        EmbeddingProviderPreset("Voyage AI", ProviderDefaults.embeddingBaseUrl("Voyage AI"), listOf("voyage-3-large", "voyage-3-lite", "voyage-code-3")),
-        EmbeddingProviderPreset("SiliconFlow", ProviderDefaults.embeddingBaseUrl("SiliconFlow"), listOf("BAAI/bge-m3", "BAAI/bge-large-en-v1.5")),
-        EmbeddingProviderPreset(Constants.PROVIDER_OPEN_ROUTER, ProviderDefaults.embeddingBaseUrl(Constants.PROVIDER_OPEN_ROUTER), listOf("openai/text-embedding-3-small", "openai/text-embedding-3-large")),
-        EmbeddingProviderPreset(Constants.PROVIDER_OLLAMA, ProviderDefaults.embeddingBaseUrl(Constants.PROVIDER_OLLAMA), emptyList()),
-        EmbeddingProviderPreset("Custom", "", emptyList())
-    )
+    val customProviders by viewModel.settings.customProviders.collectAsState()
+    val availableModels by viewModel.settings.availableModels.collectAsState()
+    val providerBaseUrls by viewModel.settings.providerBaseUrls.collectAsState()
+
+    // Embedding provider presets enriched with user's configured providers
+    val embeddingProviders = remember(customProviders, availableModels, providerBaseUrls) {
+        val list = mutableListOf<EmbeddingProviderPreset>()
+        customProviders.forEach { cp ->
+            val provModels = availableModels.entries
+                .firstOrNull { it.key.equals(cp.name, ignoreCase = true) }
+                ?.value.orEmpty()
+                .filter { it.contains("embed", ignoreCase = true) || it.contains("bge", ignoreCase = true) }
+                .ifEmpty { availableModels.entries.firstOrNull { it.key.equals(cp.name, ignoreCase = true) }?.value.orEmpty().take(4) }
+            val url = providerBaseUrls[cp.name]
+                ?: providerBaseUrls.entries.firstOrNull { it.key.equals(cp.name, ignoreCase = true) }?.value
+                ?: "https://api.openai.com/v1"
+            list.add(EmbeddingProviderPreset(cp.name, url, provModels))
+        }
+        list.add(EmbeddingProviderPreset(Constants.PROVIDER_OPENAI, ProviderDefaults.embeddingBaseUrl(Constants.PROVIDER_OPENAI), listOf("text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002")))
+        list.add(EmbeddingProviderPreset("Mistral", ProviderDefaults.embeddingBaseUrl("Mistral"), listOf("mistral-embed")))
+        list.add(EmbeddingProviderPreset("Voyage AI", ProviderDefaults.embeddingBaseUrl("Voyage AI"), listOf("voyage-3-large", "voyage-3-lite", "voyage-code-3")))
+        list.add(EmbeddingProviderPreset("SiliconFlow", ProviderDefaults.embeddingBaseUrl("SiliconFlow"), listOf("BAAI/bge-m3", "BAAI/bge-large-en-v1.5")))
+        list.add(EmbeddingProviderPreset(Constants.PROVIDER_OPEN_ROUTER, ProviderDefaults.embeddingBaseUrl(Constants.PROVIDER_OPEN_ROUTER), listOf("openai/text-embedding-3-small", "openai/text-embedding-3-large")))
+        list.add(EmbeddingProviderPreset(Constants.PROVIDER_OLLAMA, ProviderDefaults.embeddingBaseUrl(Constants.PROVIDER_OLLAMA), emptyList()))
+        list.add(EmbeddingProviderPreset("Custom", "", emptyList()))
+        list
+    }
     val remoteState = rememberRemoteEmbeddingDialogState(embeddingProviders.size)
     var localName by remember { mutableStateOf("") }
     var localFilePath by remember { mutableStateOf("") }
@@ -130,7 +177,7 @@ fun SettingsSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                             SettingsItem(
                                 headlineContent = { Text(stringResource(R.string.memory_access_past)) },
                                 supportingContent = { Text(stringResource(R.string.memory_access_past_desc)) },
-                                leadingContent = { Icon(Icons.Default.Chat, null, tint = MaterialTheme.colorScheme.primary) },
+                                leadingContent = { Icon(Icons.AutoMirrored.Filled.Chat, null, tint = MaterialTheme.colorScheme.primary) },
                                 trailingContent = {
                                     Switch(checked = accessPastConversations, onCheckedChange = { viewModel.settings.setAccessPastConversations(it) })
                                 },
@@ -230,7 +277,7 @@ fun SettingsSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         SettingsItem(
                             headlineContent = { Text(stringResource(R.string.manual_search_method)) },
                             supportingContent = { Text(stringResource(R.string.manual_search_method_desc)) },
-                            leadingContent = { Icon(Icons.Default.ManageSearch, null, tint = MaterialTheme.colorScheme.primary) },
+                            leadingContent = { Icon(Icons.AutoMirrored.Filled.ManageSearch, null, tint = MaterialTheme.colorScheme.primary) },
                             trailingContent = {
                                 Box {
                                     Text(
@@ -280,7 +327,7 @@ fun SettingsSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         add {
                             SettingsItem(
                                 headlineContent = { Text(stringResource(R.string.no_embedding_models), color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                                leadingContent = { Icon(Icons.Default.Chat, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
+                                leadingContent = { Icon(Icons.AutoMirrored.Filled.Chat, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
                                 modifier = Modifier.heightIn(min = 64.dp)
                             )
                         }
@@ -345,69 +392,75 @@ fun SettingsSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                                     trailingContent = {
                                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                                             Box(
-                                                modifier = Modifier.widthIn(min = 76.dp),
+                                                modifier = Modifier.size(cacheActionSize),
                                                 contentAlignment = androidx.compose.ui.Alignment.Center,
                                             ) {
                                                 Crossfade(
                                                     targetState = visualPhase,
+                                                    modifier = Modifier.fillMaxSize(),
                                                     animationSpec = tween(250),
                                                     label = "embeddingCacheAction-${model.id}",
                                                 ) { phase ->
-                                                    when (phase) {
-                                                        EmbeddingCacheRowPhase.CACHING,
-                                                        EmbeddingCacheRowPhase.FINALIZING -> {
-                                                            val progress = cacheRow.progress
-                                                            if (progress == null) {
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = androidx.compose.ui.Alignment.Center,
+                                                    ) {
+                                                        when (phase) {
+                                                            EmbeddingCacheRowPhase.CACHING,
+                                                            EmbeddingCacheRowPhase.FINALIZING -> {
+                                                                val progress = cacheRow.progress
+                                                                if (progress == null) {
+                                                                    CircularProgressIndicator(
+                                                                        modifier = Modifier.size(24.dp),
+                                                                        strokeWidth = 3.dp,
+                                                                    )
+                                                                } else {
+                                                                    CircularProgressIndicator(
+                                                                        progress = { progress.fraction },
+                                                                        modifier = Modifier.size(24.dp),
+                                                                        strokeWidth = 3.dp,
+                                                                    )
+                                                                }
+                                                            }
+                                                            EmbeddingCacheRowPhase.LOADING,
+                                                            EmbeddingCacheRowPhase.QUEUED ->
                                                                 CircularProgressIndicator(
                                                                     modifier = Modifier.size(24.dp),
                                                                     strokeWidth = 3.dp,
                                                                 )
-                                                            } else {
-                                                                CircularProgressIndicator(
-                                                                    progress = { progress.fraction },
-                                                                    modifier = Modifier.size(24.dp),
-                                                                    strokeWidth = 3.dp,
+                                                            EmbeddingCacheRowPhase.FAILED -> TextButton(
+                                                                onClick = {
+                                                                    viewModel.ragManager.retryCacheRow(model.id)
+                                                                },
+                                                            ) {
+                                                                Text(
+                                                                    stringResource(R.string.retry),
+                                                                    maxLines = 1,
+                                                                    softWrap = false,
                                                                 )
                                                             }
-                                                        }
-                                                        EmbeddingCacheRowPhase.LOADING,
-                                                        EmbeddingCacheRowPhase.QUEUED ->
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier.size(24.dp),
-                                                                strokeWidth = 3.dp,
-                                                            )
-                                                        EmbeddingCacheRowPhase.FAILED -> TextButton(
-                                                            onClick = {
-                                                                viewModel.ragManager.retryCacheRow(model.id)
-                                                            },
-                                                        ) {
-                                                            Text(
-                                                                stringResource(R.string.retry),
-                                                                maxLines = 1,
-                                                                softWrap = false,
-                                                            )
-                                                        }
-                                                        EmbeddingCacheRowPhase.RECACHE -> TextButton(
-                                                            onClick = { showRecacheConfirm = model.id },
-                                                        ) {
-                                                            Text(
-                                                                stringResource(R.string.recache_action),
-                                                                maxLines = 1,
-                                                                softWrap = false,
-                                                            )
-                                                        }
-                                                        EmbeddingCacheRowPhase.CACHE -> TextButton(
-                                                            onClick = {
-                                                                viewModel.ragManager.cacheMessagesForModel(
-                                                                    model.id,
+                                                            EmbeddingCacheRowPhase.RECACHE -> TextButton(
+                                                                onClick = { showRecacheConfirm = model.id },
+                                                            ) {
+                                                                Text(
+                                                                    stringResource(R.string.recache_action),
+                                                                    maxLines = 1,
+                                                                    softWrap = false,
                                                                 )
-                                                            },
-                                                        ) {
-                                                            Text(
-                                                                stringResource(R.string.cache_action),
-                                                                maxLines = 1,
-                                                                softWrap = false,
-                                                            )
+                                                            }
+                                                            EmbeddingCacheRowPhase.CACHE -> TextButton(
+                                                                onClick = {
+                                                                    viewModel.ragManager.cacheMessagesForModel(
+                                                                        model.id,
+                                                                    )
+                                                                },
+                                                            ) {
+                                                                Text(
+                                                                    stringResource(R.string.cache_action),
+                                                                    maxLines = 1,
+                                                                    softWrap = false,
+                                                                )
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -457,7 +510,9 @@ fun SettingsSearchPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                             TextButton(onClick = {
                                 remoteState.prepareForNew(
                                     embeddingProviders[0],
-                                    viewModel.ragManager.resolveEmbeddingKeyForProviderExact(Constants.PROVIDER_OPENAI)?.key ?: ""
+                                    viewModel.ragManager.resolveEmbeddingKeyForProviderExact(embeddingProviders[0].name)?.key
+                                        ?: viewModel.ragManager.resolveEmbeddingKeyForProviderExact(Constants.PROVIDER_OPENAI)?.key
+                                        ?: ""
                                 )
                                 showRemoteDialog = true
                             }) { Text(stringResource(R.string.add_remote_model)) }

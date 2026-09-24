@@ -30,6 +30,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import com.newoether.agora.ui.ds.AgoraAlpha
 
 private data class BlobSpec(
     val centerXFrac: Float,
@@ -143,9 +144,9 @@ fun AnimatedBlobBackground(
             val tertiary = blobColors[2]
             drawRect(
                 brush = Brush.linearGradient(
-                    0.0f to primary.copy(alpha = 0.6f),
-                    0.5f to tertiary.copy(alpha = 0.3f),
-                    1.0f to primary.copy(alpha = 0.6f),
+                    0.0f to primary.copy(alpha = AgoraAlpha.Hint),
+                    0.5f to tertiary.copy(alpha = AgoraAlpha.Handle),
+                    1.0f to primary.copy(alpha = AgoraAlpha.Hint),
                     start = Offset(0f, 0f),
                     end = Offset(size.width, size.height),
                 )

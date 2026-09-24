@@ -1,5 +1,7 @@
 package com.newoether.agora.util
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.bringIntoViewResponder
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
@@ -8,31 +10,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.platform.InspectorInfo
-import androidx.compose.ui.relocation.BringIntoViewModifierNode
 
-private class NoOpBringIntoViewNode : Modifier.Node(), BringIntoViewModifierNode {
-    override suspend fun bringIntoView(
-        childCoordinates: LayoutCoordinates,
-        boundsProvider: () -> Rect?
-    ) {
-        // Swallow the request; do not propagate to parent.
-    }
-}
+@OptIn(ExperimentalFoundationApi::class)
+fun Modifier.noOpBringIntoView(): Modifier = this.then(
+    Modifier.bringIntoViewResponder(
+        object : androidx.compose.foundation.relocation.BringIntoViewResponder {
+            @ExperimentalFoundationApi
+            override fun calculateRectForParent(localRect: Rect): Rect {
+                return localRect
+            }
 
-private class NoOpBringIntoViewElement : ModifierNodeElement<NoOpBringIntoViewNode>() {
-    override fun create(): NoOpBringIntoViewNode = NoOpBringIntoViewNode()
-    override fun update(node: NoOpBringIntoViewNode) {}
-    override fun InspectorInfo.inspectableProperties() {
-        name = "noOpBringIntoView"
-    }
-    override fun equals(other: Any?): Boolean = this === other
-    override fun hashCode(): Int = System.identityHashCode(this)
-}
-
-fun Modifier.noOpBringIntoView(): Modifier = this then NoOpBringIntoViewElement()
+            @ExperimentalFoundationApi
+            override suspend fun bringChildIntoView(localRect: () -> Rect?) {
+                // Swallow the request: do nothing!
+            }
+        }
+    )
+)
 
 /**
  * Selection host for content inside a scroll container.

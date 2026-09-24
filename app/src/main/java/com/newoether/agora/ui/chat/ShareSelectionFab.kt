@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.newoether.agora.ui.ds.AgoraRadii
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -32,7 +32,7 @@ internal fun ShareSelectionFab(
 ) {
     Surface(
         modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(50),
+        shape = AgoraRadii.Pill,
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 4.dp,

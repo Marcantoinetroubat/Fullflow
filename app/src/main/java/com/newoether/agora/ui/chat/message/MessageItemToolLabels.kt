@@ -94,6 +94,8 @@ private fun toolBaseDisplayName(
     ToolKind.FILE_GREP -> stringResource(R.string.tool_file_grep)
     ToolKind.IMAGE_VIEW -> stringResource(R.string.tool_view_image)
     ToolKind.IMAGE_GENERATE -> stringResource(R.string.tool_generate_image)
+    ToolKind.VIDEO_GENERATE -> "Générer une vidéo"
+    ToolKind.PODCAST_GENERATE -> stringResource(R.string.generate_podcast)
     ToolKind.TASK_CREATE -> stringResource(R.string.tool_create_task)
     ToolKind.TASK_LIST -> stringResource(R.string.tool_list_tasks)
     ToolKind.TASK_DELETE -> stringResource(R.string.tool_delete_task)
@@ -260,6 +262,8 @@ private fun runningSummary(
         R.string.tool_generating_image_subject,
         R.string.tool_progress_generating,
     )
+    ToolKind.VIDEO_GENERATE -> if (!subject.isNullOrBlank()) "Génération vidéo : $subject" else "Génération de la vidéo..."
+    ToolKind.PODCAST_GENERATE -> if (!subject.isNullOrBlank()) "Génération du podcast : $subject" else "Génération du podcast..."
     ToolKind.TASK_CREATE -> optionalSubjectSummary(
         subject,
         R.string.tool_creating_task_subject,
@@ -477,6 +481,8 @@ private fun completedSummary(
         R.string.tool_viewed_image_default,
     )
     ToolKind.IMAGE_GENERATE -> stringResource(R.string.tool_generated_image)
+    ToolKind.VIDEO_GENERATE -> "Vidéo générée"
+    ToolKind.PODCAST_GENERATE -> "Podcast généré"
     ToolKind.TASK_CREATE -> stringResource(R.string.tool_created_task)
     ToolKind.TASK_LIST -> stringResource(R.string.tool_listed_tasks)
     ToolKind.TASK_DELETE -> stringResource(R.string.tool_deleted_task)

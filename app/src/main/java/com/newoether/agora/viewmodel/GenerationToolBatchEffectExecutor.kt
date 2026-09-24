@@ -440,6 +440,16 @@ internal class GenerationToolBatchEffectExecutor(
                 callbacks.onPublishedAt(nowMs())
             }
             val completed = overlay.complete(call, result, transcription = transcription)
+            // Local tool results may carry citation candidates (web_search/web_fetch):
+            // upsert them so inline [n] chips and the sources sheet work for local search.
+            result.structuredContent?.let { payload ->
+                runCatching {
+                    com.newoether.agora.model.ToolCitationPayload.parse(payload)
+                }.getOrDefault(emptyList()).forEach { candidate ->
+                    com.newoether.agora.model.ToolCitationPayload.toCitationRecord(candidate)
+                        ?.let(overlay::upsertCitation)
+                }
+            }
             completedSegments += completed.segment
             results += completed.data
             callbacks.publish(false)

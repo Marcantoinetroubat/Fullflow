@@ -842,16 +842,27 @@ private fun SearchHighlightedMarkdownCode(
         }
     }
     val block: @Composable (String, String?, TextStyle) -> Unit = { code, language, style ->
-        SearchHighlightedMarkdownCodeText(
-            code = code,
-            language = language,
-            style = style,
-            spec = spec,
-            sourceMatches = sourceMatches,
-            highlightColor = highlightColor,
-            activeHighlightColor = activeHighlightColor,
-            nodeFade = nodeFade,
-        )
+        when {
+            // Rich visual fences render as interactive blocks; anything else stays raw code.
+            RichFenceLanguage.isMermaid(language) -> MermaidDiagramView(
+                code = code,
+                codeStyle = style,
+            )
+            RichFenceLanguage.isChart(language) -> com.newoether.agora.ui.chat.message.chart.ChartBlockView(
+                code = code,
+                codeStyle = style,
+            )
+            else -> SearchHighlightedMarkdownCodeText(
+                code = code,
+                language = language,
+                style = style,
+                spec = spec,
+                sourceMatches = sourceMatches,
+                highlightColor = highlightColor,
+                activeHighlightColor = activeHighlightColor,
+                nodeFade = nodeFade,
+            )
+        }
     }
     if (fenced) {
         MarkdownCodeFence(model.content, model.node, model.typography.code, block)

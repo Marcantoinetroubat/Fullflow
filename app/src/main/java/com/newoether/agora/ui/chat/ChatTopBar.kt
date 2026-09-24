@@ -13,13 +13,16 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
@@ -27,6 +30,9 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -57,6 +63,10 @@ import androidx.compose.ui.res.stringResource
 import com.newoether.agora.R
 import com.newoether.agora.model.ChatConversation
 import com.newoether.agora.model.ContextBudget
+import com.newoether.agora.ui.ds.AgoraDurations
+import com.newoether.agora.ui.ds.AgoraRadii
+import com.newoether.agora.ui.ds.AgoraSpacing
+import com.newoether.agora.ui.ds.FullLiveBridge
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
 import com.newoether.agora.ui.theme.ChatType
 
@@ -92,6 +102,12 @@ internal fun ChatTopBar(
     onSystemPromptClick: () -> Unit,
     onForkConversation: () -> Unit = {},
     onShareConversation: () -> Unit = {},
+    onExportConversation: () -> Unit = {},
+    onLaunchGeminiLive: () -> Unit = {},
+    hasBackground: Boolean = false,
+    onGenerateBackground: () -> Unit = {},
+    onRemoveBackground: () -> Unit = {},
+    onGeneratePodcast: () -> Unit = {},
     onNewChat: () -> Unit,
 ) {
     var moreMenuOpen by remember { mutableStateOf(false) }
@@ -178,10 +194,10 @@ internal fun ChatTopBar(
                             modifier = Modifier.fillMaxSize(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Spacer(Modifier.width(5.dp))
+                            Spacer(Modifier.width(AgoraSpacing.Xs))
                             IconButton(
                                 onClick = onSearchDismiss,
-                                modifier = Modifier.size(44.dp),
+                                modifier = Modifier.size(48.dp),
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowBack,
@@ -226,30 +242,30 @@ internal fun ChatTopBar(
                                 },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 6.dp),
+                                modifier = Modifier.padding(horizontal = AgoraSpacing.Xs),
                             )
                             IconButton(
                                 enabled = searchMatchIndex > 0,
                                 onClick = onSearchPrevious,
-                                modifier = Modifier.size(38.dp),
+                                modifier = Modifier.size(48.dp),
                             ) {
                                 Icon(
                                     Icons.Default.KeyboardArrowUp,
-                                    contentDescription = null,
+                                    contentDescription = "Occurrence précédente",
                                 )
                             }
                             IconButton(
                                 enabled = searchMatchIndex >= 0 &&
                                     searchMatchIndex < searchMatchCount - 1,
                                 onClick = onSearchNext,
-                                modifier = Modifier.size(38.dp),
+                                modifier = Modifier.size(48.dp),
                             ) {
                                 Icon(
                                     Icons.Default.KeyboardArrowDown,
-                                    contentDescription = null,
+                                    contentDescription = "Occurrence suivante",
                                 )
                             }
-                            Spacer(Modifier.width(5.dp))
+                            Spacer(Modifier.width(AgoraSpacing.Xs))
                         }
                     }
                 } else {
@@ -399,10 +415,10 @@ internal fun ChatTopBar(
                             modifier = Modifier.fillMaxHeight(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Spacer(modifier = Modifier.width(5.dp))
+                            Spacer(modifier = Modifier.width(AgoraSpacing.Xs))
                             IconButton(
                                 onClick = onNavigateBack ?: onOpenDrawer,
-                                modifier = Modifier.size(44.dp)
+                                modifier = Modifier.size(48.dp)
                             ) {
                                 Icon(
                                     imageVector = if (onNavigateBack != null) {
@@ -416,11 +432,11 @@ internal fun ChatTopBar(
                                     modifier = Modifier.size(26.dp),
                                 )
                             }
-                            Spacer(modifier = Modifier.width(5.dp))
+                            Spacer(modifier = Modifier.width(AgoraSpacing.Xs))
                             Crossfade(
                                 targetState = titlePresentation,
                                 animationSpec = tween(
-                                    durationMillis = 200,
+                                    durationMillis = AgoraDurations.Fast,
                                     easing = FastOutSlowInEasing,
                                 ),
                                 label = "chatTopBarTitle",
@@ -472,8 +488,8 @@ internal fun ChatTopBar(
                         modifier = Modifier.fillMaxHeight(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Spacer(modifier = Modifier.width(5.dp))
-                        IconButton(onClick = onNewChat, modifier = Modifier.size(44.dp)) {
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Xs))
+                        IconButton(onClick = onNewChat, modifier = Modifier.size(48.dp)) {
                             Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_chat), modifier = Modifier.size(30.dp))
                         }
                         Box {
@@ -481,7 +497,7 @@ internal fun ChatTopBar(
                                 onClick = {
                                     moreMenuOpen = true
                                 },
-                                modifier = Modifier.size(44.dp),
+                                modifier = Modifier.size(48.dp),
                             ) {
                                 Icon(
                                     Icons.Default.MoreVert,
@@ -492,10 +508,19 @@ internal fun ChatTopBar(
                             DropdownMenu(
                                 expanded = moreMenuOpen,
                                 onDismissRequest = { moreMenuOpen = false },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = AgoraRadii.Sm,
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
                                 tonalElevation = 16.dp,
                             ) {
+                                // Gemini Live entry hidden (spec « Voix & Baguette Magique » v1.0).
+                                DropdownMenuItem(
+                                    text = { Text("Atelier Pi-Mesh (mesh.v1)") },
+                                    leadingIcon = { Icon(Icons.Default.Hub, contentDescription = null, tint = FullLiveBridge.Cyan) },
+                                    onClick = {
+                                        moreMenuOpen = false
+                                        com.newoether.agora.mesh.MeshController.openStudio()
+                                    },
+                                )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.conversation_search)) },
                                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
@@ -519,7 +544,7 @@ internal fun ChatTopBar(
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.conversation_fork_menu)) },
                                     leadingIcon = {
-                                        Icon(Icons.Default.CallSplit, contentDescription = null)
+                                        Icon(Icons.AutoMirrored.Filled.CallSplit, contentDescription = null)
                                     },
                                     enabled = conversationActionsEnabled,
                                     onClick = {
@@ -528,19 +553,54 @@ internal fun ChatTopBar(
                                     },
                                 )
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.conversation_share)) },
+                                    text = { Text("Exporter la conversation") },
                                     leadingIcon = {
-                                        Icon(Icons.Default.Share, contentDescription = null)
+                                        Icon(Icons.Default.Share, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     },
                                     enabled = conversationActionsEnabled,
                                     onClick = {
                                         moreMenuOpen = false
-                                        onShareConversation()
+                                        onExportConversation()
                                     },
                                 )
+                                DropdownMenuItem(
+                                    text = { Text(if (hasBackground) "Régénérer l'arrière-plan" else "Générer un arrière-plan") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Wallpaper, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    },
+                                    enabled = conversationActionsEnabled,
+                                    onClick = {
+                                        moreMenuOpen = false
+                                        onGenerateBackground()
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.generate_podcast)) },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.GraphicEq, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    },
+                                    enabled = conversationActionsEnabled,
+                                    onClick = {
+                                        moreMenuOpen = false
+                                        onGeneratePodcast()
+                                    },
+                                )
+                                if (hasBackground) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.remove_background)) },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                        },
+                                        enabled = conversationActionsEnabled,
+                                        onClick = {
+                                            moreMenuOpen = false
+                                            onRemoveBackground()
+                                        },
+                                    )
+                                }
                             }
                         }
-                        Spacer(modifier = Modifier.width(5.dp))
+                        Spacer(modifier = Modifier.width(AgoraSpacing.Xs))
                     }
                 }
                 }
@@ -555,7 +615,7 @@ private fun ChatTopBarCapsule(
     shadowElevation: Dp = 4.dp,
     content: @Composable () -> Unit,
 ) {
-    val shape = RoundedCornerShape(50)
+    val shape = CircleShape
     Box(
         modifier = modifier,
         propagateMinConstraints = true,

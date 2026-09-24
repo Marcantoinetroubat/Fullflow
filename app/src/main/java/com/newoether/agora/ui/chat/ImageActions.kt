@@ -94,6 +94,10 @@ private fun openImageSource(context: Context, url: String): OpenedImageSource? {
             return null
         }
         val body = response.body
+        if (body == null) {
+            response.close()
+            return null
+        }
         return OpenedImageSource(
             input = body.byteStream(),
             sizeBytes = body.contentLength().takeIf { it >= 0L },

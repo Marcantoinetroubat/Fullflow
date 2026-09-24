@@ -6,15 +6,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,11 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
-import com.newoether.agora.ui.components.clearFocusOnTap
+import com.newoether.agora.ui.ds.AgoraDialog
+import com.newoether.agora.ui.ds.AgoraTextField
 
 @Composable
 fun PromptSettingItem(
@@ -64,36 +60,26 @@ fun PromptEditDialog(
     onSave: (String) -> Unit
 ) {
     var draft by remember(initialPrompt) { mutableStateOf(initialPrompt) }
-    AlertDialog(
-        modifier = Modifier.clearFocusOnTap(),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    AgoraDialog(
+        title = title,
         onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold) },
+        confirmText = stringResource(R.string.provider_save),
+        onConfirm = {
+            onSave(draft)
+            onDismiss()
+        },
+        dismissText = stringResource(R.string.provider_cancel),
         text = {
-            OutlinedTextField(
+            AgoraTextField(
                 value = draft,
                 onValueChange = { draft = it },
-                label = { Text(stringResource(R.string.prompt_content)) },
-                shape = RoundedCornerShape(16.dp),
+                label = stringResource(R.string.prompt_content),
+                singleLine = false,
                 minLines = 6,
-                maxLines = 12,
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 180.dp)
             )
         },
-        confirmButton = {
-            TextButton(onClick = {
-                onSave(draft)
-                onDismiss()
-            }) {
-                Text(stringResource(R.string.provider_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.provider_cancel))
-            }
-        }
     )
 }

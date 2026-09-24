@@ -198,7 +198,6 @@ internal fun AttachmentPreviewRow(
                                 onAllMediaClick?.invoke(allMediaUrls, mediaIndex)
                             },
                             onLongClick = { haptics.longPress() },
-                            hapticFeedbackEnabled = false,
                         )
                         else -> Modifier
                     }

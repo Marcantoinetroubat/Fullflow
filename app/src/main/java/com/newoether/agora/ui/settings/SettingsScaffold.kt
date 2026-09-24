@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import com.newoether.agora.R
 import com.newoether.agora.ui.components.CircularBackButton
 import com.newoether.agora.ui.components.clearFocusOnTap
+import com.newoether.agora.ui.ds.AgoraSpacing
 
 // ── Shared geometry for the iOS-style collapsing large title, used by the
 //    Settings home page and every settings sub-page so the morph is identical. ──
@@ -95,7 +96,7 @@ internal fun CollapsingSettingsTitleBar(
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         // The expanded title runs from a 24dp start inset; keep a 16dp end margin.
-        val availableTitleWidth = (maxWidth - 24.dp - 16.dp).coerceAtLeast(0.dp)
+        val availableTitleWidth = (maxWidth - AgoraSpacing.Xxl - AgoraSpacing.Lg).coerceAtLeast(0.dp)
 
         // Auto-fit the expanded font: shrink from 33sp until even long translations
         // (Spanish/French/Russian page names, etc.) fit on one line — down to a 20sp floor.
@@ -120,7 +121,7 @@ internal fun CollapsingSettingsTitleBar(
 
         val expandedY = statusBarTop + SettingsBarHeight + titleAreaHeight - SettingsTitleBottomInset
         val titleY = expandedY - titleTravel * fraction   // linear 1:1 with scroll → docks at expandedY − travel
-        val titleX = 24.dp + (70.dp - 24.dp) * eased       // eased shrink-and-tuck beside the back arrow
+        val titleX = AgoraSpacing.Xxl + (70.dp - AgoraSpacing.Xxl) * eased       // eased shrink-and-tuck beside the back arrow
 
         // Opaque bar (incl. the status-bar strip) hides list content scrolling underneath it.
         Box(
@@ -132,12 +133,12 @@ internal fun CollapsingSettingsTitleBar(
         CircularBackButton(
             onClick = onBack,
             contentDescription = backDescription,
-            modifier = Modifier.padding(start = 16.dp, top = statusBarTop + 12.dp)
+            modifier = Modifier.padding(start = AgoraSpacing.Lg, top = statusBarTop + AgoraSpacing.Md)
         )
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(end = 4.dp, top = statusBarTop + 8.dp),
+                .padding(end = AgoraSpacing.Xs, top = statusBarTop + AgoraSpacing.Sm),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
             content = actions

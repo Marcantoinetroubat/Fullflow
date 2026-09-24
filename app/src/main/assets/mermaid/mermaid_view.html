@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  #container { width: 100%; box-sizing: border-box; padding: 4px; }
+  #container svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+</style>
+<script src="mermaid.min.js"></script>
+</head>
+<body>
+<div id="container"></div>
+<script>
+  var DARK_VARS = {
+    background: 'transparent',
+    primaryColor: '#1e293b',
+    primaryTextColor: '#f1f5f9',
+    primaryBorderColor: '#64748b',
+    lineColor: '#94a3b8',
+    secondaryColor: '#0f172a',
+    tertiaryColor: '#1f2937',
+    fontFamily: 'sans-serif'
+  };
+  var LIGHT_VARS = {
+    background: 'transparent',
+    primaryColor: '#eef2ff',
+    primaryTextColor: '#1e293b',
+    primaryBorderColor: '#94a3b8',
+    lineColor: '#64748b',
+    secondaryColor: '#f8fafc',
+    tertiaryColor: '#ffffff',
+    fontFamily: 'sans-serif'
+  };
+  var agoraInitialized = false;
+  var agoraRenderSeq = 0;
+
+  function reportHeight() {
+    var h = Math.ceil(document.getElementById('container').getBoundingClientRect().height) + 8;
+    if (window.AgoraMermaid && AgoraMermaid.onHeight) AgoraMermaid.onHeight(h);
+  }
+
+  function notifyError(message) {
+    if (window.AgoraMermaid && AgoraMermaid.onError) AgoraMermaid.onError(String(message));
+  }
+
+  window.renderAgoraMermaid = function (source, dark) {
+    var container = document.getElementById('container');
+    var seq = ++agoraRenderSeq;
+    try {
+      mermaid.mermaidAPI.setConfig({
+        startOnLoad: false,
+        securityLevel: 'strict',
+        theme: 'base',
+        themeVariables: dark ? DARK_VARS : LIGHT_VARS,
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+      agoraInitialized = true;
+      var id = 'agora-mmd-' + seq;
+      mermaid.render(id, source).then(function (res) {
+        if (seq !== agoraRenderSeq) return; // a newer render superseded this one
+        container.innerHTML = res.svg;
+        // Some diagram types inject a temporary element into body; remove leftovers.
+        var tmp = document.getElementById(id);
+        if (tmp && tmp.parentNode && tmp.parentNode !== container) tmp.parentNode.removeChild(tmp);
+        reportHeight();
+        if (window.AgoraMermaid && AgoraMermaid.onRendered) AgoraMermaid.onRendered();
+      }).catch(function (err) {
+        if (seq !== agoraRenderSeq) return;
+        container.innerHTML = '';
+        notifyError(err && err.message ? err.message : 'Diagramme non rendu');
+      });
+    } catch (e) {
+      container.innerHTML = '';
+      notifyError(e && e.message ? e.message : e);
+    }
+  };
+
+  window.getAgoraSvg = function () {
+    return document.getElementById('container').innerHTML || '';
+  };
+</script>
+</body>
+</html>
