@@ -164,6 +164,7 @@ afterEvaluate {
 val byteBuddyAgent by configurations.creating
 
 dependencies {
+    add("byteBuddyAgent", libs.byte.buddy.agent)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
