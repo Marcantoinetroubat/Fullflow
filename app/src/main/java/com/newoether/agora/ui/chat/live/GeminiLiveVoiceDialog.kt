@@ -188,7 +188,7 @@ fun GeminiLiveVoiceDialog(
                     ) {
                         IconButton(
                             onClick = { showSubtitles = !showSubtitles },
-                            modifier = Modifier.minimumInteractiveComponentSize()
+                            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                         ) {
                             Icon(
                                 if (showSubtitles) Icons.Default.Subtitles else Icons.Default.SubtitlesOff,

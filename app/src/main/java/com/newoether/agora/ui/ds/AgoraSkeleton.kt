@@ -68,7 +68,7 @@ fun AgoraSkeleton(
             .background(shimmerColor)
             .semantics {
                 contentDescription = label
-                liveRegion()
+                liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite
             },
     )
 }

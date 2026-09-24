@@ -80,8 +80,8 @@ fun FullFlowAudioFilesTab(
             OutlinedButton(
                 onClick = { audioPicker.launch("audio/*") },
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                shape = RoundedCornerShape(10.dp)__,
-                border = BorderStroke(1.dp__, Color.White.copy(alpha = 0.2f)),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
                 modifier = Modifier.weight(1f).height(46.dp)
             ) {
                 Icon(Icons.Default.UploadFile, null, modifier = Modifier.size(AgoraSpacing.Xl))
@@ -105,7 +105,7 @@ fun FullFlowAudioFilesTab(
                     containerColor = if (manager.isRecording) Color(0xFFEF4444) else Color(0xFF1E293B),
                     contentColor = Color.White
                 ),
-                shape = RoundedCornerShape(10.dp)__,
+                shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.weight(1f).height(46.dp)
             ) {
                 Icon(
@@ -130,8 +130,8 @@ fun FullFlowAudioFilesTab(
                     .fillMaxWidth()
                     .padding(vertical = AgoraSpacing.Sm),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF131922)),
-                shape = RoundedCornerShape(10.dp)__,
-                border = BorderStroke(1.dp__, Color(0xFF243042))
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, Color(0xFF243042))
             ) {
                 Column(modifier = Modifier.padding(AgoraSpacing.Lg)) {
                     Row(
@@ -146,7 +146,7 @@ fun FullFlowAudioFilesTab(
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .clip(RoundedCornerShape(10.dp)__)
+                                    .clip(RoundedCornerShape(10.dp))
                                     .background(Color(0xFF1E293B)),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -236,14 +236,14 @@ fun FullFlowAudioFilesTab(
                             containerColor = Color(0xFF38BDF8),
                             contentColor = Color.Black
                         ),
-                        shape = RoundedCornerShape(10.dp)__,
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth().height(46.dp)
                     ) {
                         if (manager.isTranscribing) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(AgoraSpacing.Xl),
                                 color = Color.Black,
-                                strokeWidth = 2.dp__
+                                strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
                             Text(manager.transcriptionProgressText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -261,8 +261,8 @@ fun FullFlowAudioFilesTab(
                     .fillMaxWidth()
                     .padding(vertical = AgoraSpacing.Md),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF0F141C)),
-                shape = RoundedCornerShape(10.dp)__,
-                border = BorderStroke(1.dp__, Color(0xFF1E2836))
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, Color(0xFF1E2836))
             ) {
                 Column(
                     modifier = Modifier
@@ -309,8 +309,8 @@ fun FullFlowAudioFilesTab(
                     .fillMaxWidth()
                     .padding(vertical = AgoraSpacing.Sm),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF0F141C)),
-                shape = RoundedCornerShape(10.dp)__,
-                border = BorderStroke(1.dp__, Color(0xFF2A3648))
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, Color(0xFF2A3648))
             ) {
                 Column(modifier = Modifier.padding(AgoraSpacing.Lg)) {
                     Row(
@@ -373,8 +373,8 @@ fun FullFlowAudioFilesTab(
                             OutlinedButton(
                                 onClick = { sendGenMail(manager.transcriptionResult) },
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                                shape = RoundedCornerShape(10.dp)__,
-                                border = BorderStroke(1.dp__, Color.White.copy(alpha = 0.2f)),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(Icons.Default.MailOutline, null, modifier = Modifier.size(AgoraSpacing.Lg))
@@ -386,7 +386,7 @@ fun FullFlowAudioFilesTab(
                         Button(
                             onClick = { onInsertIntoChat(manager.transcriptionResult) },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                            shape = RoundedCornerShape(10.dp)__,
+                            shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1.2f)
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Send, null, modifier = Modifier.size(AgoraSpacing.Lg))

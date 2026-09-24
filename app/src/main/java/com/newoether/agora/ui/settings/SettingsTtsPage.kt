@@ -416,7 +416,7 @@ fun SettingsTtsPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
                 ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)))
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
             ) {
                 Row(
                     modifier = Modifier.padding(AgoraSpacing.Lg),
@@ -715,7 +715,7 @@ private fun KokoroDownloadCard(
             containerColor = Color(0xFF13231B)
         ),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFF1E3A2B)))
+        border = BorderStroke(1.dp, Color(0xFF1E3A2B)),
     ) {
         Column(modifier = Modifier.padding(AgoraSpacing.Lg)) {
             Row(

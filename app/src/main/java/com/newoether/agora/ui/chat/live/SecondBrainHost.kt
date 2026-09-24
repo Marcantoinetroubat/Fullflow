@@ -242,14 +242,14 @@ private fun SecondBrainScreen(
             AnimatedVisibility(visible = isIndexing) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2833)),
-                    shape = RoundedCornerShape(8.dp)__,
+                    shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(AgoraSpacing.Lg)
                 ) {
                     Column(modifier = Modifier.padding(AgoraSpacing.Lg)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(modifier = Modifier.size(AgoraSpacing.Lg), strokeWidth = 2.dp__, color = Color(0xFF38BDF8))
+                            CircularProgressIndicator(modifier = Modifier.size(AgoraSpacing.Lg), strokeWidth = 2.dp, color = Color(0xFF38BDF8))
                             Spacer(modifier = Modifier.width(AgoraSpacing.Md))
                             Text("Indexation en cours...", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
                         }
@@ -297,7 +297,7 @@ private fun SecondBrainScreen(
                     placeholder = { Text("Rechercher dans votre cerveau...", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp) },
                     leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFF38BDF8)) },
                     singleLine = true,
-                    shape = RoundedCornerShape(8.dp)__,
+                    shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF38BDF8),
                         unfocusedBorderColor = Color.White.copy(alpha = AgoraAlpha.Subtle),
@@ -323,7 +323,7 @@ private fun SecondBrainScreen(
                     Button(
                         onClick = { singleNotePicker.launch("*/*") },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = AgoraAlpha.Subtle)),
-                        shape = RoundedCornerShape(8.dp)__,
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.NoteAdd, null, tint = Color.White, modifier = Modifier.size(AgoraSpacing.Lg))
@@ -334,7 +334,7 @@ private fun SecondBrainScreen(
                     Button(
                         onClick = { folderTreePicker.launch(null) },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = AgoraAlpha.Subtle)),
-                        shape = RoundedCornerShape(8.dp)__,
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.FolderZip, null, tint = Color.White, modifier = Modifier.size(AgoraSpacing.Lg))
@@ -467,7 +467,7 @@ private fun SecondBrainScreen(
                     Text("Fermer", color = Color(0xFF38BDF8))
                 }
             },
-            shape = RoundedCornerShape(8.dp)__,
+            shape = RoundedCornerShape(8.dp),
             containerColor = Color(0xFF141A21)
         )
     }
@@ -490,7 +490,7 @@ private fun SecondBrainScreen(
                         focusedBorderColor = Color(0xFF38BDF8),
                         unfocusedBorderColor = Color.White.copy(alpha = AgoraAlpha.Divider)
                     ),
-                    shape = RoundedCornerShape(8.dp)__
+                    shape = RoundedCornerShape(8.dp)
                 )
             },
             confirmButton = {
@@ -512,7 +512,7 @@ private fun SecondBrainScreen(
                     Text("Annuler", color = Color.White.copy(alpha = AgoraAlpha.Hint))
                 }
             },
-            shape = RoundedCornerShape(8.dp)__,
+            shape = RoundedCornerShape(8.dp),
             containerColor = Color(0xFF141A21)
         )
     }
@@ -527,9 +527,9 @@ private fun NoteRowCard(
     onDelete: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(8.dp)__,
+        shape = RoundedCornerShape(8.dp),
         color = Color.White.copy(alpha = AgoraAlpha.Subtle),
-        border = BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Subtle)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Subtle)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -600,9 +600,9 @@ private fun ObsidianTaskRowCard(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(8.dp)__,
+        shape = RoundedCornerShape(8.dp),
         color = Color.White.copy(alpha = AgoraAlpha.Subtle),
-        border = BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Subtle)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Subtle)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -644,7 +644,7 @@ private fun ObsidianTaskRowCard(
                         Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
                         Surface(
                             color = Color(0xFF38BDF8).copy(alpha = AgoraAlpha.Divider),
-                            shape = RoundedCornerShape(8.dp)__
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
                                 text = "Prio: ${task.priority}",
@@ -667,9 +667,9 @@ private fun BrainItemRowCard(
     onDelete: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(8.dp)__,
+        shape = RoundedCornerShape(8.dp),
         color = Color.White.copy(alpha = AgoraAlpha.Subtle),
-        border = BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Subtle)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Subtle)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -680,7 +680,7 @@ private fun BrainItemRowCard(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(38.dp)
-                    .clip(RoundedCornerShape(8.dp)__)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(Color(0xFF38BDF8).copy(alpha = AgoraAlpha.Subtle))
             ) {
                 Icon(

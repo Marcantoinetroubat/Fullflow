@@ -182,7 +182,7 @@ fun StudioSelectionHeader(
             ) {
                     IconButton(
                         onClick = onExitSelection,
-                        modifier = Modifier.minimumInteractiveComponentSize()
+                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     ) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -254,7 +254,7 @@ fun StudioSelectionHeader(
 
                     IconButton(
                         onClick = onDeleteSelected,
-                        modifier = Modifier.minimumInteractiveComponentSize()
+                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
@@ -792,7 +792,7 @@ fun StudioSavedPromptsSheet(
 
                                     IconButton(
                                         onClick = { onDeletePrompt(item) },
-                                        modifier = Modifier.minimumInteractiveComponentSize()
+                                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.DeleteOutline,

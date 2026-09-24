@@ -185,7 +185,7 @@ fun StudioVideoFloatingComposer(
 
                     IconButton(
                         onClick = onVoiceInput,
-                        modifier = Modifier.minimumInteractiveComponentSize()
+                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Mic,

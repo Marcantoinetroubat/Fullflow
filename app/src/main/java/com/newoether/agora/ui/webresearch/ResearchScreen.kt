@@ -161,9 +161,9 @@ fun ResearchScreen(
                         // Suggestion cards
                         suggestions.forEach { suggestion ->
                             Surface(
-                                shape = RoundedCornerShape(28.dp)__,
+                                shape = RoundedCornerShape(28.dp),
                                 color = Color.White.copy(alpha = AgoraAlpha.Subtle),
-                                border = BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Subtle)),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Subtle)),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 5.dp)
@@ -236,9 +236,9 @@ fun ResearchScreen(
                         // Synthesized Answer Section
                         item {
                             Surface(
-                                shape = RoundedCornerShape(28.dp)__,
+                                shape = RoundedCornerShape(28.dp),
                                 color = Color.White.copy(alpha = AgoraAlpha.Subtle),
-                                border = BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Subtle)),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Subtle)),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(bottom = AgoraSpacing.Lg)
@@ -265,7 +265,7 @@ fun ResearchScreen(
                                         if (isSynthesizing) {
                                             CircularProgressIndicator(
                                                 modifier = Modifier.size(AgoraSpacing.Lg),
-                                                strokeWidth = 2.dp__,
+                                                strokeWidth = 2.dp,
                                                 color = Color(0xFF38BDF8)
                                             )
                                         }
@@ -359,8 +359,8 @@ fun ResearchScreen(
             // Bottom Input Bar
             Surface(
                 color = Color.White.copy(alpha = 0.02f),
-                border = BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Subtle)),
-                shape = RoundedCornerShape(28.dp)__,
+                border = BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Subtle)),
+                shape = RoundedCornerShape(28.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = AgoraSpacing.Lg, vertical = AgoraSpacing.Md)

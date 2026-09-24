@@ -454,17 +454,17 @@ private fun TemplateItemRow(
                 horizontalArrangement = Arrangement.End
             ) {
                 if (onMoveUp != null) {
-                    IconButton(onClick = onMoveUp, modifier = Modifier.minimumInteractiveComponentSize()) {
+                    IconButton(onClick = onMoveUp, modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) {
                         Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.template_move_up), modifier = Modifier.size(18.dp))
                     }
                 }
                 if (onMoveDown != null) {
-                    IconButton(onClick = onMoveDown, modifier = Modifier.minimumInteractiveComponentSize()) {
+                    IconButton(onClick = onMoveDown, modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.template_move_down), modifier = Modifier.size(18.dp))
                     }
                 }
                 if (onDelete != null) {
-                    IconButton(onClick = onDelete, modifier = Modifier.minimumInteractiveComponentSize()) {
+                    IconButton(onClick = onDelete, modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) {
                         Icon(Icons.Default.Close, contentDescription = stringResource(R.string.provider_delete), modifier = Modifier.size(18.dp))
                     }
                 }

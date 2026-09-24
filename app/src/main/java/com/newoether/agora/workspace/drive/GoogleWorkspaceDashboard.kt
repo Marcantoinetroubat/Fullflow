@@ -996,7 +996,7 @@ fun GoogleDriveFileRow(
         // Actions
         IconButton(
             onClick = onImportClick,
-            modifier = Modifier.minimumInteractiveComponentSize()
+            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
         ) {
             Icon(
                 imageVector = if (file.isFolder) Icons.Default.ChevronRight else Icons.Default.AddComment,

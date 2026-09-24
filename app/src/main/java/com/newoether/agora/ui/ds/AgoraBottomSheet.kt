@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -61,6 +62,6 @@ fun AgoraBottomSheet(
 }
 
 object AgoraSheetDefaults {
-    val HandleWidth = androidx.compose.ui.unit.dp(36)
-    val HandleHeight = androidx.compose.ui.unit.dp(5)
+    val HandleWidth = 36.dp
+    val HandleHeight = 5.dp
 }

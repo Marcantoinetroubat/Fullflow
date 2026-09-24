@@ -89,15 +89,15 @@ fun SettingsGroup(
                 val isFirst = index == 0
                 val isLast = index == items.lastIndex
                 val shape = when {
-                    items.size == 1 -> RoundedCornerShape(5.dp)__
-                    isFirst -> RoundedCornerShape(5.dp)__
-                    isLast -> RoundedCornerShape(5.dp)__
-                    else -> RoundedCornerShape(5.dp)__
+                    items.size == 1 -> RoundedCornerShape(5.dp)
+                    isFirst -> RoundedCornerShape(5.dp)
+                    isLast -> RoundedCornerShape(5.dp)
+                    else -> RoundedCornerShape(5.dp)
                 }
                 Surface(
                     shape = shape,
                     color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 1.dp__,
+                    tonalElevation = 1.dp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     item()
@@ -412,7 +412,7 @@ fun SettingsScreen(viewModel: ChatViewModel, onBack: () -> Unit) {
                                     Surface(
                                         shape = shape,
                                         color = MaterialTheme.colorScheme.surface,
-                                        tonalElevation = 1.dp__,
+                                        tonalElevation = 1.dp,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clip(shape)

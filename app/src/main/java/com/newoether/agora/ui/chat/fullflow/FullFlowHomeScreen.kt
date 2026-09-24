@@ -143,7 +143,7 @@ fun FullFlowHomeScreen(
                     // Lens / Scan / Focus icon [-]
                     IconButton(
                         onClick = onOpenSearch,
-                        modifier = Modifier.minimumInteractiveComponentSize()
+                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.CropFree,
@@ -158,7 +158,7 @@ fun FullFlowHomeScreen(
                     // Home icon
                     IconButton(
                         onClick = onResetHome,
-                        modifier = Modifier.minimumInteractiveComponentSize()
+                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Home,
@@ -202,7 +202,7 @@ fun FullFlowHomeScreen(
                     // Drawer Hamburger Menu ≡
                     IconButton(
                         onClick = onOpenDrawer,
-                        modifier = Modifier.minimumInteractiveComponentSize()
+                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Menu,

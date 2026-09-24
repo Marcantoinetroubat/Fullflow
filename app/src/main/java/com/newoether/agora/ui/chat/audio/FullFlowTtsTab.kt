@@ -77,7 +77,7 @@ fun FullFlowTtsTab(
                                 val paste = clip?.getItemAt(0)?.text?.toString().orEmpty()
                                 if (paste.isNotBlank()) textInput = paste
                             },
-                            modifier = Modifier.minimumInteractiveComponentSize()
+                            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                         ) {
                             Icon(Icons.Default.ContentPaste, "Coller", tint = Color.White.copy(alpha = AgoraAlpha.Hint), modifier = Modifier.size(16.dp))
                         }
@@ -85,7 +85,7 @@ fun FullFlowTtsTab(
                         if (textInput.isNotBlank()) {
                             IconButton(
                                 onClick = { textInput = "" },
-                                modifier = Modifier.minimumInteractiveComponentSize()
+                                modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                             ) {
                                 Icon(Icons.Default.Close, "Effacer", tint = Color.White.copy(alpha = AgoraAlpha.Hint), modifier = Modifier.size(16.dp))
                             }

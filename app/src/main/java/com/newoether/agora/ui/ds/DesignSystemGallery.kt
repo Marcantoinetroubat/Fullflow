@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 /**
  * Galerie « Design System / Components » : visualise tous les composants
@@ -52,9 +53,9 @@ fun DesignSystemGallery(modifier: Modifier = Modifier) {
 
         AgoraPrimaryButton(text = "Primaire", onClick = {})
         AgoraPrimaryButton(text = "Disabled", onClick = {}, enabled = false)
-        AgoraIconButton(onClick = {}, imageVector = ArrowBack, contentDescription = "Retour")
+        AgoraIconButton(onClick = {}, imageVector = Icons.Filled.ArrowBack, contentDescription = "Retour")
         AgoraBackButton(onClick = {}, contentDescription = "Retour")
-        AgoraFab(text = "Action", icon = Add, onClick = {})
+        AgoraFab(text = "Action", icon = Icons.Filled.Add, onClick = {})
 
         AgoraSectionLabel("Card / Section")
         AgoraCard {
@@ -75,7 +76,7 @@ fun DesignSystemGallery(modifier: Modifier = Modifier) {
         AgoraLoader(label = "Chargement…")
         AgoraLinearLoader()
         AgoraSnackbarCard(message = "Message snackbar — surfaceContainerHigh, radius 12dp.")
-        AgoraEmptyState(title = "Vide", description = "État vide canonique.", icon = Inbox, actionLabel = "Action", onAction = {})
+        AgoraEmptyState(title = "Vide", description = "État vide canonique.", icon = Icons.Filled.Inbox, actionLabel = "Action", onAction = {})
         AgoraErrorState(title = "Erreur", description = "État erreur canonique + liveRegion.", retryLabel = "Réessayer", onRetry = {})
 
         AgoraSectionLabel("Dropdown / Skeleton")

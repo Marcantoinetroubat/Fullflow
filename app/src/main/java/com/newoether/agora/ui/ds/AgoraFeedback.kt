@@ -59,7 +59,7 @@ fun AgoraLoader(
     Column(
         modifier = modifier
             .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-            .semantics { liveRegion() },
+            .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -136,7 +136,7 @@ fun AgoraErrorState(
         modifier = modifier
             .fillMaxWidth()
             .padding(AgoraSpacing.Xxxl)
-            .semantics { liveRegion() },
+            .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(

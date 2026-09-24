@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 
 /**
  * Lignes canoniques : remplacent GenParamSlider/ContextSliderItem/
@@ -174,7 +175,7 @@ fun AgoraSettingsAddItem(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(androidx.compose.ui.unit.dp(56)),
+            .height(56.dp),
         shape = AgoraRadii.Pill,
     ) {
         Text(text)

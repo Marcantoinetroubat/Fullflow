@@ -78,10 +78,10 @@ fun StudioFloatingComposer(
         ) {
             Surface(
                 onClick = onOpenModelPicker,
-                shape = RoundedCornerShape(36.dp)__,
+                shape = RoundedCornerShape(36.dp),
                 color = Color(0xFF192230),
-                border = androidx.compose.foundation.BorderStroke(1.dp__, Color(0xFFFFD54F).copy(alpha = 0.5f)),
-                shadowElevation = 4.dp__
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD54F).copy(alpha = 0.5f)),
+                shadowElevation = 4.dp
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = AgoraSpacing.Md, vertical = 5.dp),
@@ -116,9 +116,9 @@ fun StudioFloatingComposer(
         ) {
             attachedBitmap?.let { bmp ->
                 Surface(
-                    shape = RoundedCornerShape(36.dp)__,
+                    shape = RoundedCornerShape(36.dp),
                     color = Color(0xFF141A23),
-                    border = androidx.compose.foundation.BorderStroke(1.dp__, Color(0xFFFFD54F).copy(alpha = 0.5f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD54F).copy(alpha = 0.5f)),
                     modifier = Modifier.padding(bottom = AgoraSpacing.Xxs)
                 ) {
                     Row(
@@ -131,7 +131,7 @@ fun StudioFloatingComposer(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(34.dp)
-                                .clip(RoundedCornerShape(36.dp)__)
+                                .clip(RoundedCornerShape(36.dp))
                         )
                         Spacer(modifier = Modifier.width(AgoraSpacing.Sm))
                         Column {
@@ -170,9 +170,9 @@ fun StudioFloatingComposer(
             exit = fadeOut() + shrinkVertically(),
         ) {
             Surface(
-                shape = RoundedCornerShape(36.dp)__,
+                shape = RoundedCornerShape(36.dp),
                 color = Color(0xFF111720),
-                border = androidx.compose.foundation.BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Divider)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Divider)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -190,7 +190,7 @@ fun StudioFloatingComposer(
                             val isSelected = ratio == selectedRatio
                             Surface(
                                 onClick = { onRatioChange(ratio) },
-                                shape = RoundedCornerShape(36.dp)__,
+                                shape = RoundedCornerShape(36.dp),
                                 color = if (isSelected) Color(0xFFFFD54F) else Color.White.copy(alpha = AgoraAlpha.Subtle),
                             ) {
                                 Text(
@@ -212,7 +212,7 @@ fun StudioFloatingComposer(
                             val isSelected = res == selectedResolution
                             Surface(
                                 onClick = { onResolutionChange(res) },
-                                shape = RoundedCornerShape(36.dp)__,
+                                shape = RoundedCornerShape(36.dp),
                                 color = if (isSelected) Color(0xFF60A5FA) else Color.White.copy(alpha = AgoraAlpha.Subtle),
                             ) {
                                 Text(
@@ -235,7 +235,7 @@ fun StudioFloatingComposer(
                             }
                             onBurstCountChange(nextCount)
                         },
-                        shape = RoundedCornerShape(36.dp)__,
+                        shape = RoundedCornerShape(36.dp),
                         color = Color.White.copy(alpha = AgoraAlpha.Subtle)
                     ) {
                         Text(
@@ -251,9 +251,9 @@ fun StudioFloatingComposer(
         }
 
         Surface(
-            shape = RoundedCornerShape(36.dp)__,
+            shape = RoundedCornerShape(36.dp),
             color = Color(0xFF131822),
-            border = androidx.compose.foundation.BorderStroke(1.dp__, Color.White.copy(alpha = AgoraAlpha.Divider)),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = AgoraAlpha.Divider)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -316,7 +316,7 @@ fun StudioFloatingComposer(
                 if (promptText.isNotBlank()) {
                     IconButton(
                         onClick = onSavePromptClick,
-                        modifier = Modifier.minimumInteractiveComponentSize()
+                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.BookmarkAdd,
@@ -329,7 +329,7 @@ fun StudioFloatingComposer(
 
                 IconButton(
                     onClick = onToggleConfigRow,
-                    modifier = Modifier.minimumInteractiveComponentSize()
+                    modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Tune,
@@ -341,7 +341,7 @@ fun StudioFloatingComposer(
 
                 IconButton(
                     onClick = { onVoiceInput?.invoke() },
-                    modifier = Modifier.minimumInteractiveComponentSize()
+                    modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Mic,
@@ -366,7 +366,7 @@ fun StudioFloatingComposer(
                     if (isGenerating) {
                         CircularProgressIndicator(
                             color = Color(0xFFFFD54F),
-                            strokeWidth = 2.dp__,
+                            strokeWidth = 2.dp,
                             modifier = Modifier.size(AgoraSpacing.Xl)
                         )
                     } else {
