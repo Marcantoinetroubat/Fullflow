@@ -30,6 +30,10 @@ jobs:
           java-version: 21
 
       - uses: android-actions/setup-android@v3
+        with:
+          # Default packages ("tools platform-tools") are obsolete: the
+          # "tools" package no longer exists in the SDK repository.
+          packages: "platform-tools"
 
       - uses: gradle/actions/setup-gradle@v4
 
